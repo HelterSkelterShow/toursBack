@@ -4,9 +4,9 @@ from fastapi_users.authentication import JWTStrategy
 
 from src.auth.manager import get_user_manager
 from src.auth.models import User
-from src.config import SECRET_AUTH
+from src.config import SECRET_AUTH, SESSION_LIFETIME
 
-cookie_transport = CookieTransport(cookie_name="SESSION", cookie_max_age=3600)
+cookie_transport = CookieTransport(cookie_name="SESSION", cookie_max_age=SESSION_LIFETIME)
 
 
 def get_jwt_strategy() -> JWTStrategy:

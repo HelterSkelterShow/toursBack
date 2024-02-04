@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Body, Path
+from fastapi import FastAPI, Body, Path, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from src.auth.base_config import current_user
+from src.auth.models import User
 from src.auth.routers import router as router_auth
 
 
@@ -24,3 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(router_auth)
+
+@app.get("/protected-route")
+def protected_route(user: User = Depends(current_user)):
+    return f"Hello, {user.email}"
