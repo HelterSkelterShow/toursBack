@@ -10,3 +10,4 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASS = os.environ.get('DB_PASS')
 
 SECRET = os.environ.get('SECRET')
+RESET_AND_VERIFICATION = os.environ.get('RESET_AND_VERIFICATION_SECRET')

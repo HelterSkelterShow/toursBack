@@ -7,16 +7,13 @@ from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import String, Boolean, Integer,TIMESTAMP, foreign_key
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from config import DB_HOST, DB_NAME, DB_USER, DB_PORT, DB_PASS
-from models import role
+from model import role
 
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-
-class Base(DeclarativeBase):
-    pass
-
+Base: DeclarativeMeta = declarative_base()
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
