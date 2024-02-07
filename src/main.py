@@ -10,7 +10,7 @@ from src.auth.base_config import auth_backend, fastapi_users
 from src.auth.schemas import UserRead, UserCreate
 
 from src.auth.manager import get_user_manager
-from src.auth.schemas import UserRead, UserCreate
+from src.auth.schemas import UserRead, UserCreate, UserUpdate
 
 
 app = FastAPI()
@@ -32,8 +32,6 @@ app.add_middleware(
 )
 
 #app.include_router(router_auth)
-
-
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth",
@@ -66,7 +64,7 @@ app.include_router(
 )
 
 app.include_router(
-    fastapi_users.get_users_router(UserRead, requires_verification=True),
+    fastapi_users.get_users_router(UserRead, UserUpdate, requires_verification=True),
     prefix="/users",
     tags=["users"],
 )
