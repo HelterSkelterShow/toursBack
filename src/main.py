@@ -63,6 +63,7 @@ app.include_router(
     tags=["auth"],
 )
 
+
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate, requires_verification=True),
     prefix="/users",
