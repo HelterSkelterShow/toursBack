@@ -63,7 +63,7 @@ app.include_router(
     tags=["auth"],
 )
 
-
+#этот роутер надо будет переписать для работы с ЛК Админа и профилями. Ожидавется get user/list, user/{id}/block, user/{id}/activate
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate, requires_verification=True),
     prefix="/users",
