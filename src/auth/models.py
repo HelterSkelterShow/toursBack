@@ -12,8 +12,6 @@ role = Table(
     Column("name", String, nullable=False),
 )
 
-
-
 class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "user"
 
@@ -21,7 +19,6 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     email = Column(String, nullable=False)
     phone = Column(String, nullable=False)
     name = Column(String, nullable=True)
-    username = Column(String, nullable=False)
     registered_at = Column(TIMESTAMP, default=datetime.utcnow)
     role_id = Column(Integer, ForeignKey(role.c.id))
     hashed_password: str = Column(String(length=1024), nullable=False)

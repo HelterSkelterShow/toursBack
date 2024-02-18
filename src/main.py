@@ -48,19 +48,19 @@ app.include_router(
 
 app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
+    prefix="/users",
     tags=["auth"],
 )
 
 app.include_router(
     fastapi_users.get_verify_router(UserRead),
-    prefix="/auth",
+    prefix="/users",
     tags=["auth"],
 )
 
 app.include_router(
     fastapi_users.get_reset_password_router(),
-    prefix="/auth",
+    prefix="/users",
     tags=["auth"],
 )
 
