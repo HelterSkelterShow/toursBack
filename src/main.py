@@ -11,6 +11,7 @@ from src.auth.schemas import UserRead, UserCreate
 
 from src.auth.manager import get_user_manager
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
+from src.tours.routers import router as router_tours
 
 
 app = FastAPI()
@@ -69,6 +70,8 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+
+app.include_router(router_tours)
 
 @app.get("/protected-route")
 def protected_route(user: User = Depends(current_user)):
