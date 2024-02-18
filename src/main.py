@@ -16,7 +16,7 @@ from src.tours.routers import router as router_tours
 
 app = FastAPI()
 
-app.mount("/src/static", StaticFiles(directory="src/static"), name="static")
+#app.mount("/src/static", StaticFiles(directory="src/static"), name="static")
 
 origins = [
     "http://localhost",
