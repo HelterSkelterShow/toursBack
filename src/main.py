@@ -19,6 +19,7 @@ app = FastAPI()
 #app.mount("/src/static", StaticFiles(directory="src/static"), name="static")
 
 origins = [
+    "https://toursback.onrender.com/"
     "http://localhost",
     "http://localhost:3000",
 ]
