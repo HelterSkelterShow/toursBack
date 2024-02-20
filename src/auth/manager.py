@@ -21,13 +21,13 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     async def on_after_forgot_password(
         self, user: User, token: str, request: Optional[Request] = None
     ):
-        send_email_password_reset(user.user, user.email, token)
+        send_email_password_reset(user.name, user.email, token)
         print("e-mail отправлен")
 
     async def on_after_request_verify(
         self, user: User, token: str, request: Optional[Request] = None
     ):
-        send_email_verification(user.user,user.email, token)
+        send_email_verification(user.name,user.email, token)
         print("e-mail отправлен")
 
     async def create(
