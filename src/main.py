@@ -67,13 +67,13 @@ app.include_router(
 
 #этот роутер надо будет переписать для работы с ЛК Админа и профилями. Ожидавется get user/list, user/{id}/block, user/{id}/activate
 app.include_router(
-    fastapi_users.get_users_router(UserRead, UserUpdate, requires_verification=True),
+    fastapi_users.get_users_router(UserRead, UserUpdate, requires_verification=False),
     prefix="/users",
     tags=["users"],
 )
 
 app.include_router(router_tours)
 
-@app.get("/protected-route")
-def protected_route(user: User = Depends(current_user)):
-    return f"Hello, {user.email}"
+@app.get("/protected-route", response_model=UserRead)
+def protected_route(user: User = Depends(current_user)) -> dict:
+    return user
