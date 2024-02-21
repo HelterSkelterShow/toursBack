@@ -15,7 +15,7 @@ from src.tours.routers import router as router_tours
 
 
 app = FastAPI()
-
+#
 #app.mount("/src/static", StaticFiles(directory="src/static"), name="static")
 
 origins = [
@@ -71,6 +71,7 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+
 
 app.include_router(router_tours)
 
