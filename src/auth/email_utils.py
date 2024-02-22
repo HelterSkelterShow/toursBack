@@ -3,8 +3,7 @@ import base64
 import requests
 
 def send_email_password_reset(name: str, email: str, token: str):
-    b = base64.b64encode(bytes(token, 'utf-8'))  # bytes
-    base64_token = b.decode('utf-8')  # convert bytes to string
+    base64_token = base64.b64encode(bytes(token, 'utf-8'))  # bytes
 
     url = 'https://api.smtp.bz/v1/smtp/send'
 
@@ -21,8 +20,8 @@ def send_email_password_reset(name: str, email: str, token: str):
     print(response.status_code, response.content)
 
 def send_email_verification(name: str, email: str, token: str):
-    b = base64.b64encode(bytes(token, 'utf-8'))  # bytes
-    base64_token = b.decode('utf-8')  # convert bytes to string
+    base64_token = base64.b64encode(bytes(token, 'utf-8'))  # bytes
+#    base64_token = b.decode('utf-8')  # convert bytes to string
 
     url = 'https://api.smtp.bz/v1/smtp/send'
 
