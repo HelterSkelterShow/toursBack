@@ -6,7 +6,7 @@ from src.auth.manager import get_user_manager
 from src.auth.models import User
 from src.config import SECRET_AUTH, SESSION_LIFETIME
 
-cookie_transport = CookieTransport(cookie_name="SESSION", cookie_max_age=SESSION_LIFETIME, cookie_httponly=False, cookie_samesite="none", cookie_domain="localhost")
+cookie_transport = CookieTransport(cookie_name="SESSION", cookie_max_age=SESSION_LIFETIME, cookie_httponly=False, cookie_samesite="none")
 
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=SECRET_AUTH, lifetime_seconds=3600)

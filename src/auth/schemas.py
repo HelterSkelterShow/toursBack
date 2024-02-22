@@ -9,7 +9,7 @@ class UserRead(schemas.BaseUser[int]):
     phone: str
     name: str
     inn: Optional[str]
-    inn_verification: bool
+    inn_verification: Optional[bool]
     role_id: int
     is_active: bool = True
     is_superuser: bool = False
@@ -24,7 +24,7 @@ class UserCreate(schemas.BaseUserCreate):
     phone: str
     name: str
     inn: Optional[str]
-    inn_verification: bool = False
+    inn_verification: Optional[bool] = False
     password: str
     role_id: int
     is_active: Optional[bool] = True
