@@ -1,4 +1,5 @@
 from typing import Optional
+from pydantic import BaseModel
 
 from fastapi_users import schemas
 
@@ -9,7 +10,6 @@ class UserRead(schemas.BaseUser[int]):
     phone: str
     name: str
     inn: Optional[str]
-    inn_verification: Optional[bool]
     role_id: int
     is_active: bool = True
     is_superuser: bool = False
@@ -24,7 +24,6 @@ class UserCreate(schemas.BaseUserCreate):
     phone: str
     name: str
     inn: Optional[str]
-    inn_verification: Optional[bool] = False
     password: str
     role_id: int
     is_active: Optional[bool] = True
@@ -34,4 +33,7 @@ class UserCreate(schemas.BaseUserCreate):
 
 class UserUpdate(schemas.BaseUserUpdate):
     pass
+
+class innCheckRs(BaseModel):
+    status: bool
 

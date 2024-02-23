@@ -20,7 +20,6 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     phone = Column(String, nullable=False)
     name = Column(String, nullable=True)
     inn = Column(String, nullable=True)
-    inn_verification = Column(Boolean, nullable=True)
     registered_at = Column(TIMESTAMP, default=datetime.utcnow)
     role_id = Column(Integer, ForeignKey(role.c.id))
     hashed_password: str = Column(String(length=1024), nullable=False)
