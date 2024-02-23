@@ -14,8 +14,8 @@ router = APIRouter(
     tags=["users"]
 )
 
-@router.post("/{inn}}", response_model=innCheckRs)
-async def innValidate(inn:str, session : AsyncSession = Depends(get_async_session)) -> dict:
+@router.post("/{inn}", response_model=innCheckRs)
+async def innValidate(inn : str) -> dict:
     date = datetime.date.today()
     date_str = date.isoformat()
     url = "https://statusnpd.nalog.ru/api/v1/tracker/taxpayer_status"
