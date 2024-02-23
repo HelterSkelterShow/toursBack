@@ -1,8 +1,4 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy import update
-from src.auth.base_config import current_user
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.auth.models import User
 from src.auth.schemas import innCheckRs
 import datetime
 import requests
@@ -24,7 +20,7 @@ async def innValidate(inn : str) -> dict:
         "requestDate": date_str,
     }
     try:
-        resp = requests.post(url=url, json=data, timeout=60)
+        resp = requests.post(url=url, json=data)
         status = resp.json()["status"]
     except:
         raise HTTPException(500, detail={
