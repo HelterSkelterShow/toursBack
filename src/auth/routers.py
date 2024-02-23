@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 @router.post("/{inn}", response_model=innCheckRs)
-async def innValidate(inn : str) -> dict:
+def innValidate(inn : str) -> dict:
     date = datetime.date.today()
     date_str = date.isoformat()
     url = "https://statusnpd.nalog.ru/api/v1/tracker/taxpayer_status"
