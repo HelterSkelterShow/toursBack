@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from src.auth.schemas import innCheckRs
+from src.config import SECRET_AUTH, SESSION_LIFETIME
 import datetime
 import requests
 
@@ -22,6 +23,12 @@ def innValidate(inn : str) -> dict:
     try:
         resp = requests.post(url=url, json=data)
         status = resp.json()["status"]
+        if (resp.status_code != 200):
+            raise HTTPException(500, detail={
+                "status": "ERROR_OR_LIMIT",
+                "data": None,
+                "details": "FNS_SERVICE_ERROR_OR_LIMIT"
+        })
     except:
         raise HTTPException(500, detail={
             "status": "ERROR",
