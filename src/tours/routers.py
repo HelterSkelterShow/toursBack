@@ -23,6 +23,13 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
                              templ: TourTemplCreateRq = Depends(TourTemplCreateRq.as_form),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
+    for tempFile in tourPhotos:
+        if tempFile.content_type not in ("image/jpeg", "image/png"):
+            raise HTTPException(400, detail={
+                "status":"ERROR",
+                "data":None,
+                "details":"Invalid document type"
+            })
     try:
         photosPath = []
         for tempFile in tourPhotos:
