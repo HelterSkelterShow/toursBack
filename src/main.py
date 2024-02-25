@@ -16,8 +16,8 @@ from src.auth.routers import router as router_users
 
 
 app = FastAPI()
-#
-#app.mount("/src/static", StaticFiles(directory="src/static"), name="static")
+
+app.mount("/src/static", StaticFiles(directory="src/static"), name="static")
 
 origins = [
     "https://toursback.onrender.com/"
