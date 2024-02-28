@@ -80,13 +80,7 @@ async def updateTourTemplate(id: str,
                              templ: TourTemplCreateRq = Depends(TourTemplCreateRq.as_form),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
-    for tempFile in tourPhotos:
-        if tempFile.content_type not in ("image/jpeg", "image/png"):
-            raise HTTPException(400, detail={
-                "status": "ERROR",
-                "data": None,
-                "details": "Invalid document type"
-            })
+    fileValidation(tourPhotos)
     try:
         query = select(tour_schema.c.photos).where(tour_schema.c.id == id)
         result = await session.execute(query)
