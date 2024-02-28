@@ -18,8 +18,6 @@ from src.catalogs.routers import router as router_catalogs
 
 app = FastAPI()
 
-#app.mount("/src/static", StaticFiles(directory="src/static"), name="static")
-
 origins = [
     "https://toursback.onrender.com/"
     "http://localhost",
@@ -42,13 +40,6 @@ app.include_router(
     prefix="/users",
     tags=["auth"],
 )
-
-#вариант, где требуется верификация через подтверждение почты
-#app.include_router(
-#    fastapi_users.get_auth_router(auth_backend, requires_verification=True),
-#    prefix="/auth/jwt",
-#    tags=["auth"],
-#)
 
 app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),

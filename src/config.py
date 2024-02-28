@@ -14,6 +14,9 @@ RESET_AND_VERIFICATION = os.environ.get('RESET_AND_VERIFICATION_SECRET')
 
 SESSION_LIFETIME = 3600
 
+MAX_FILE_SIZE = int(os.environ.get('MAX_FILE_SIZE'))
+MAX_FILE_SUM_SIZE = int(os.environ.get('MAX_FILE_SUM_SIZE'))
+
 SMTP_USER=os.environ.get('SMTP_USER')
 SMTP_PASSWORD=os.environ.get('SMTP_PASSWORD')
 
