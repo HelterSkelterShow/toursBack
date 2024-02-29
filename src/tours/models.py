@@ -8,7 +8,7 @@ from src.database import metadata
 tour_schema = Table(
     "tour_schema",
     metadata,
-    Column("id", UUID, primary_key=True),
+    Column("tourId", UUID, primary_key=True),
     Column("ownerGidId", Integer, ForeignKey(User.id)),
     Column("tourName", String, nullable=False),
     Column("category", String, nullable=False),
@@ -27,7 +27,7 @@ tours_plan = Table(
     "tour_plan",
     metadata,
     Column("id", UUID, primary_key=True),
-    Column("schemaId", UUID, ForeignKey(tour_schema.c.id)),
+    Column("schemaId", UUID, ForeignKey(tour_schema.c.tourId)),
     Column("price", Integer, nullable=False),
     Column("dateFrom", TIMESTAMP, nullable=False),
     Column("dateTo", TIMESTAMP, nullable=False),

@@ -25,3 +25,9 @@ def fileValidation(tourPhotos):
                 "data": None,
                 "details": f"Максимальная сумма файлов {MAX_FILE_SUM_SIZE}Мб"
             })
+
+def photosOptimization(res_list):
+    list_of_dicts = [dict(row) for row in res_list]
+    for tour in list_of_dicts:
+        tour["photos"] = tour["photos"][0]
+    return list_of_dicts

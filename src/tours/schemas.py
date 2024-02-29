@@ -40,7 +40,7 @@ class RecomendedAge(BaseModel):
     recommendedAgeFrom:int
     recommendedAgeTo:int
 
-class TourTemplCreateRq(BaseModel):
+class TourTempl(BaseModel):
    tourName: str
    category: str
    region: str
@@ -80,11 +80,12 @@ class TourTemplCreateRq(BaseModel):
        return cls(tourName=tourName,
                   category=category,
                   region = region,
-                  mapPoints = TourTemplCreateRq.list_of_lists_converter(mapPoints),
+                  mapPoints = TourTempl.list_of_lists_converter(mapPoints),
                   tourDescription = tourDescription,
                   complexity = complexity,
                   recommendedAgeFrom = recommendedAgeFrom,
                   recommendedAgeTo = recommendedAgeTo,
-                  freeServices = TourTemplCreateRq.list_converter(freeServices) if freeServices is not None else None,
-                  additionalServices = TourTemplCreateRq.list_converter(additionalServices) if additionalServices is not None else None
+                  freeServices = TourTempl.list_converter(freeServices) if freeServices is not None else None,
+                  additionalServices = TourTempl.list_converter(additionalServices) if additionalServices is not None else None
                   )
+

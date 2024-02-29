@@ -1,18 +1,19 @@
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.auth.base_config import current_user
 import boto3
-from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, MAX_FILE_SIZE, MAX_FILE_SUM_SIZE
+from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID
 
-from src.tours.models import tour_schema, tours_plan, offers
-from src.tours.utils import fileValidation
+from src.tours.models import tour_schema
+from src.tours.utils import fileValidation, photosOptimization
 from src.auth.models import User
 from src.database import get_async_session
-from src.tours.schemas import TourSearchRq, RsList, TourTemplCreateRq
+from src.tours.schemas import TourTempl
 
 router = APIRouter(
     prefix="/tours",
@@ -21,7 +22,7 @@ router = APIRouter(
 
 @router.post("/templates/create")
 async def createTourTemplate(tourPhotos: List[UploadFile],
-                             templ: TourTemplCreateRq = Depends(TourTemplCreateRq.as_form),
+                             templ: TourTempl = Depends(TourTempl.as_form),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     fileValidation(tourPhotos)
@@ -46,7 +47,7 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
     try:
         query = insert(tour_schema).values(
-            id = uuid.uuid4(),
+            tourId = uuid.uuid4(),
             ownerGidId = user.id,
             tourName = templ.tourName,
             category = templ.category,
@@ -77,12 +78,12 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
                              tourPhotos: List[UploadFile],
-                             templ: TourTemplCreateRq = Depends(TourTemplCreateRq.as_form),
+                             templ: TourTempl = Depends(TourTempl.as_form),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     fileValidation(tourPhotos)
     try:
-        query = select(tour_schema.c.photos).where(tour_schema.c.id == id)
+        query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
         client = boto3.client(service_name="s3",
                               endpoint_url='https://storage.yandexcloud.net',
@@ -104,8 +105,8 @@ async def updateTourTemplate(id: str,
             "details": None
         })
     try:
-        query = update(tour_schema).where(tour_schema.c.id == id).values(
-            id=id,
+        query = update(tour_schema).where(tour_schema.c.tourId == id).values(
+            tourId=id,
             ownerGidId=user.id,
             tourName=templ.tourName,
             category=templ.category,
@@ -138,7 +139,7 @@ async def deleteTourTemplate(id: str,
                                  user: User = Depends(current_user),
                                  session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        query = select(tour_schema.c.photos).where(tour_schema.c.id == id)
+        query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
         client = boto3.client(service_name="s3",
                               endpoint_url='https://storage.yandexcloud.net',
@@ -146,7 +147,7 @@ async def deleteTourTemplate(id: str,
                               aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
         for image in result.all()[0][0]:
             client.delete_object(Bucket='mywaytours', Key=image.removeprefix('https://storage.yandexcloud.net/mywaytours/'))
-        stmt = delete(tour_schema).where(tour_schema.c.id == id)
+        stmt = delete(tour_schema).where(tour_schema.c.tourId == id)
         await session.execute(stmt)
         await session.commit()
         return {"status":"success",
@@ -159,4 +160,45 @@ async def deleteTourTemplate(id: str,
              "data": None,
              "details": None
          })
+
+@router.get("/templates/{id}")
+async def getTourTemplate(id: str,
+                          user: User = Depends(current_user),
+                          session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = select(tour_schema).where(tour_schema.c.tourId == id)
+        result = await session.execute(query)
+        res_dict = dict(result.mappings().first())
+        return {"status": "success",
+                "data": res_dict,
+                "details": None
+                }
+    except:
+        raise HTTPException(500, detail={
+            "status":"ERROR",
+            "data":None,
+            "details":"NOT FOUND"
+        })
+
+@router.get("/templates")
+async def getTourTemplateList(user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
+    try:
+        query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.photos)
+        result = await session.execute(query)
+        res_list = result.mappings().all()
+        list_of_tours = photosOptimization(res_list)
+        return {"status": "success",
+                "data": list_of_tours,
+                "details": None
+                }
+    except:
+        raise HTTPException(500, detail={
+            "status":"ERROR",
+            "data":None,
+            "details":"NOT FOUND"
+        })
+
+
+
+
 
