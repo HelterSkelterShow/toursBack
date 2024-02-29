@@ -12,7 +12,7 @@ def getCatalog(catalogName: catalogs) -> list:
     match(catalogName):
         case("category"):
             return categories
-        case("comlexity"):
+        case("complexity"):
             return complexity
         case("country"):
             return regions
