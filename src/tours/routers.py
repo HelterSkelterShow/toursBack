@@ -82,37 +82,36 @@ async def updateTourTemplate(id: str,
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     fileValidation(tourPhotos)
-    try:
-        query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
-        result = await session.execute(query)
-        client = boto3.client(service_name="s3",
-                              endpoint_url='https://storage.yandexcloud.net',
-                              aws_access_key_id=AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-        for image in result.all()[0][0]:
-            client.delete_object(Bucket='mywaytours',
-                                 Key=image.removeprefix('https://storage.yandexcloud.net/mywaytours/'))
-        photosPath = []
-        for tempFile in tourPhotos:
-            id = uuid.uuid4()
-            url = f"https://storage.yandexcloud.net/mywaytours/{id}"
-            photosPath.append(url)
-            client.upload_fileobj(tempFile.file, 'mywaytours', str(id))
-    except:
-        raise HTTPException(500, detail={
-            "status": "S3_ERROR",
-            "data": None,
-            "details": None
-        })
+    # try:
+    #     query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
+    #     result = await session.execute(query)
+    # client = boto3.client(service_name="s3",
+    #                           endpoint_url='https://storage.yandexcloud.net',
+    #                           aws_access_key_id=AWS_ACCESS_KEY_ID,
+    #                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    #     for image in result.all()[0][0]:
+    #         client.delete_object(Bucket='mywaytours',
+    #                              Key=image.removeprefix('https://storage.yandexcloud.net/mywaytours/'))
+    # photosPath = []
+    # for tempFile in tourPhotos:
+    #     id = uuid.uuid4()
+    #     url = f"https://storage.yandexcloud.net/mywaytours/{id}"
+    #     photosPath.append(url)
+    #     client.upload_fileobj(tempFile.file, 'mywaytours', str(id))
+    # except:
+    #     raise HTTPException(500, detail={
+    #         "status": "S3_ERROR",
+    #         "data": None,
+    #         "details": None
+    #     })
     try:
         query = update(tour_schema).where(tour_schema.c.tourId == id).values(
-            tourId=id,
             ownerGidId=user.id,
             tourName=templ.tourName,
             category=templ.category,
             region=templ.region,
             mapPoints=templ.mapPoints,
-            photos=photosPath,
+            # photos=photosPath,
             tourDescription=templ.tourDescription,
             complexity=templ.complexity,
             freeServices=templ.freeServices,
