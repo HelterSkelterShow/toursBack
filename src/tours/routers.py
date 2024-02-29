@@ -169,6 +169,10 @@ async def getTourTemplate(id: str,
         query = select(tour_schema).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
         res_dict = dict(result.mappings().first())
+        if res_dict["freeServices"] == "undefined":
+            res_dict["freeServices"] = None
+        if res_dict["additionalServices"] == "undefined":
+            res_dict["additionalServices"] = None
         return {"status": "success",
                 "data": res_dict,
                 "details": None
