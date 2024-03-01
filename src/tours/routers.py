@@ -169,14 +169,12 @@ async def getTourTemplate(id: str,
         result = await session.execute(query)
         res_dict = dict(result.mappings().first())
 
-        if res_dict["freeServices"] == "undefined":
-            res_dict["freeServices"] = None
-        if res_dict["additionalServices"] == "undefined":
-            res_dict["additionalServices"] = None
         if res_dict["freeServices"] != None:
             res_dict["freeServices"] = res_dict["freeServices"][0].split(",")
+            res_dict["freeServices"] = [item.encode('utf-8') for item in res_dict["freeServices"]]
         if res_dict["additionalServices"] != None:
             res_dict["additionalServices"] = res_dict["additionalServices"][0].split(",")
+            res_dict["additionalServices"] = [item.encode('utf-8') for item in res_dict["additionalServices"]]
 
         return {"status": "success",
                 "data": res_dict,
