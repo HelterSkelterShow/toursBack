@@ -1,7 +1,14 @@
+import uuid
+
 from fastapi import HTTPException
+from sqlalchemy import select
 
-from src.config import MAX_FILE_SIZE, MAX_FILE_SUM_SIZE
+from src.config import MAX_FILE_SIZE, MAX_FILE_SUM_SIZE, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID
+from src.tours.models import tour_schema
 
+from src.database import get_async_session
+
+import boto3
 
 def fileValidation(tourPhotos):
     fileSumSize = 0
@@ -31,3 +38,11 @@ def photosOptimization(res_list):
     for tour in list_of_dicts:
         tour["photos"] = tour["photos"][0]
     return list_of_dicts
+
+def updatePhotos(tourPhotos, newPhotos, S3_client):
+    for tempFile in newPhotos:
+        id = uuid.uuid4()
+        url = f"https://storage.yandexcloud.net/mywaytours/{id}"
+        S3_client.upload_fileobj(tempFile.file, 'mywaytours', str(id))
+        tourPhotos.append(url)
+    return tourPhotos

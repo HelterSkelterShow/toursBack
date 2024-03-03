@@ -51,6 +51,7 @@ class TourTempl(BaseModel):
    recommendedAgeTo: int
    freeServices: Optional[List[str]]
    additionalServices: Optional[List[str]]
+   oldPhotos: Optional[List[str]]
    @staticmethod
    def list_of_lists_converter(mapPoints):
        cleaned_s = mapPoints.replace('"', '')
@@ -64,7 +65,7 @@ class TourTempl(BaseModel):
        return list_of_elems
 
    @classmethod
-   def as_form(
+   def as_form_create(
            cls,
            tourName: str = Form(),
            category: str = Form(),
@@ -75,7 +76,7 @@ class TourTempl(BaseModel):
            recommendedAgeFrom: int = Form(),
            recommendedAgeTo: int = Form(),
            freeServices: Optional[str] = Form(default=None),
-           additionalServices: Optional[str] = Form(default=None) ,
+           additionalServices: Optional[str] = Form(default=None),
       ):
        return cls(tourName=tourName,
                   category=category,
@@ -87,5 +88,32 @@ class TourTempl(BaseModel):
                   recommendedAgeTo = recommendedAgeTo,
                   freeServices = TourTempl.list_converter(freeServices) if freeServices is not None else None,
                   additionalServices = TourTempl.list_converter(additionalServices) if additionalServices is not None else None
+                  )
+   @classmethod
+   def as_form_update(
+           cls,
+           tourName: str = Form(),
+           category: str = Form(),
+           region: str = Form(),
+           mapPoints: str = Form(),
+           tourDescription: str = Form(),
+           complexity: str = Form(),
+           recommendedAgeFrom: int = Form(),
+           recommendedAgeTo: int = Form(),
+           freeServices: Optional[str] = Form(default=None),
+           additionalServices: Optional[str] = Form(default=None),
+           oldPhotos: Optional[str] = Form(default=None)
+      ):
+       return cls(tourName=tourName,
+                  category=category,
+                  region = region,
+                  mapPoints = TourTempl.list_of_lists_converter(mapPoints),
+                  tourDescription = tourDescription,
+                  complexity = complexity,
+                  recommendedAgeFrom = recommendedAgeFrom,
+                  recommendedAgeTo = recommendedAgeTo,
+                  freeServices = TourTempl.list_converter(freeServices) if freeServices is not None else None,
+                  additionalServices = TourTempl.list_converter(additionalServices) if additionalServices is not None else None,
+                  oldPhotos=TourTempl.list_converter(oldPhotos) if oldPhotos is not None else None,
                   )
 
