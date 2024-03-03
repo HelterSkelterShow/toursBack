@@ -1,10 +1,9 @@
 import uuid
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, File
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
 
 from src.auth.base_config import current_user
 import boto3
@@ -78,12 +77,11 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
-                             newPhotos: Optional[List[UploadFile]],
+                             newPhotos: Optional[List[UploadFile]] = File(None),
                              templ: TourTempl = Depends(TourTempl.as_form_update),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     fileValidation(newPhotos)
-
     try:
         query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
