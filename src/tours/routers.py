@@ -25,8 +25,8 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
                              templ: TourTempl = Depends(TourTempl.as_form_create),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
-    fileValidation(tourPhotos)
     try:
+        fileValidation(tourPhotos)
         photosPath = []
         client = boto3.client(service_name="s3",
                               endpoint_url='https://storage.yandexcloud.net',
@@ -77,12 +77,13 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
-                             newPhotos: List[UploadFile] = Form(None),
+                             newPhotos: List[UploadFile],
                              templ: TourTempl = Depends(TourTempl.as_form_update),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
-    fileValidation(newPhotos)
     try:
+        # if type(newPhotos[0]) != str:
+        #     fileValidation(newPhotos)
         query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
         client = boto3.client(service_name="s3",
