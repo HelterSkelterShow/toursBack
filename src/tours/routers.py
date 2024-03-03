@@ -77,7 +77,7 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
-                             templ: TourTempl = Depends(TourTemplUpdate.as_form),
+                             templ: TourTemplUpdate,
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     try:
