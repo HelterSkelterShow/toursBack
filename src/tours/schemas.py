@@ -49,9 +49,9 @@ class TourTempl(BaseModel):
    complexity: str
    recommendedAgeFrom: int
    recommendedAgeTo: int
-   freeServices: Optional[List[str]]
-   additionalServices: Optional[List[str]]
-   tourPhotos: Optional[List[str]]
+   freeServices: List[str]|None = None
+   additionalServices: List[str]|None = None
+   tourPhotos: List[str]|None = None
 
    # @staticmethod
    # def list_of_lists_converter(mapPoints):
