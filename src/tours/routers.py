@@ -99,7 +99,6 @@ async def updateTourTemplate(id: str,
             "details": None
         })
     try:
-        print(templ.oldPhotos)
         query = update(tour_schema).where(tour_schema.c.tourId == id).values(
             ownerGidId=user.id,
             tourName=templ.tourName,
