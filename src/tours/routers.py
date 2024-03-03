@@ -167,7 +167,7 @@ async def getTourTemplate(id: str,
             res_dict["freeServices"] = res_dict["freeServices"][0].split(",")
             res_dict["freeServices"] = [item.encode('utf-8') for item in res_dict["freeServices"]]
         if res_dict["additionalServices"] != None:
-            res_dict["additionalServices"] = res_dict["additionalServices"][0].split(",")
+            res_dict["additionalServices"] = res_dict["additionalServices"][0].split(", ")
             res_dict["additionalServices"] = [item.encode('utf-8') for item in res_dict["additionalServices"]]
         if res_dict["photos"] != None:
             res_dict["photos"] = res_dict["photos"][0].split(",")
