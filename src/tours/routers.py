@@ -96,7 +96,7 @@ async def updateTourTemplate(id: str,
                 client.delete_object(Bucket='mywaytours',
                                      Key=image.removeprefix('https://storage.yandexcloud.net/mywaytours/'))
 
-        tourPhotos = updatePhotos(tourPhotos, newPhotos, client)
+        tourPhotos = updatePhotos(tourPhotos, templ.newPhotos, client)
     except:
         raise HTTPException(500, detail={
             "status": "S3_ERROR",
