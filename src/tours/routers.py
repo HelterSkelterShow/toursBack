@@ -105,7 +105,7 @@ async def updateTourTemplate(id: str,
             category=templ.category,
             region=templ.region,
             mapPoints=templ.mapPoints,
-            photos=tourPhotos,
+            photos=templ.tourPhotos,
             tourDescription=templ.tourDescription,
             complexity=templ.complexity,
             freeServices=templ.freeServices,
@@ -169,6 +169,8 @@ async def getTourTemplate(id: str,
         if res_dict["additionalServices"] != None:
             res_dict["additionalServices"] = res_dict["additionalServices"][0].split(",")
             res_dict["additionalServices"] = [item.encode('utf-8') for item in res_dict["additionalServices"]]
+        if res_dict["tourPhotos"] != None:
+            res_dict["tourPhotos"] = res_dict["tourPhotos"][0].split(",")
 
         return {"status": "success",
                 "data": res_dict,
