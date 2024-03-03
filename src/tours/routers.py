@@ -21,8 +21,7 @@ router = APIRouter(
 )
 
 @router.post("/templates/create")
-async def createTourTemplate(tourPhotos: List[UploadFile],
-                             templ: TourTempl,
+async def createTourTemplate(templ: TourTempl,
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     try:
