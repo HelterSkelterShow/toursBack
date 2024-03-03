@@ -39,10 +39,4 @@ def photosOptimization(res_list):
         tour["photos"] = tour["photos"][0]
     return list_of_dicts
 
-def updatePhotos(tourPhotos, newPhotos, S3_client):
-    for tempFile in newPhotos:
-        id = uuid.uuid4()
-        url = f"https://storage.yandexcloud.net/mywaytours/{id}"
-        S3_client.upload_fileobj(tempFile.file, 'mywaytours', str(id))
-        tourPhotos.append(url)
-    return tourPhotos
+

@@ -10,10 +10,10 @@ import boto3
 from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID
 
 from src.tours.models import tour_schema
-from src.tours.utils import fileValidation, photosOptimization, updatePhotos
+from src.tours.utils import fileValidation, photosOptimization
 from src.auth.models import User
 from src.database import get_async_session
-from src.tours.schemas import TourTempl, TourTemplUpdate
+from src.tours.schemas import TourTempl,TourTemplUpdate
 
 router = APIRouter(
     prefix="/tours",
@@ -77,26 +77,21 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
-                             # newPhotos: List[UploadFile],
                              templ: TourTempl = Depends(TourTemplUpdate.as_form),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     try:
-        # if type(newPhotos[0]) != str:
-        #     fileValidation(newPhotos)
         query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
         client = boto3.client(service_name="s3",
                               endpoint_url='https://storage.yandexcloud.net',
                               aws_access_key_id=AWS_ACCESS_KEY_ID,
                               aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-        tourPhotos = templ.oldPhotos if templ.oldPhotos != None else []
+        tourPhotos = templ.tourPhotos if templ.tourPhotos != None else []
         for image in result.all()[0][0]:
             if image not in tourPhotos:
                 client.delete_object(Bucket='mywaytours',
                                      Key=image.removeprefix('https://storage.yandexcloud.net/mywaytours/'))
-        if templ.newPhotos != None:
-            tourPhotos = updatePhotos(tourPhotos, templ.newPhotos, client)
     except:
         raise HTTPException(500, detail={
             "status": "S3_ERROR",
@@ -204,7 +199,6 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
             "data":None,
             "details":"NOT FOUND"
         })
-
 
 
 
