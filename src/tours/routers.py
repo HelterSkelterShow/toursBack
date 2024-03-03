@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
 from src.auth.base_config import current_user
 import boto3
@@ -77,7 +78,7 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
-                             newPhotos: List[UploadFile],
+                             newPhotos: Optional[List[UploadFile]],
                              templ: TourTempl = Depends(TourTempl.as_form_update),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
