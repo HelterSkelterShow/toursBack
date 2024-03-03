@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 @router.post("/upload")
-def uploadPhotoToBecket(tourPhotos: List[UploadFile] | None = None, user: User = Depends(current_user)) -> dict:
+def uploadPhotoToBecket(tourPhotos: List[UploadFile], user: User = Depends(current_user)) -> dict:
     if not tourPhotos:
         return {
             "status": "success",
