@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, UploadFile, Form, File
 from src.auth.base_config import current_user
 from src.auth.models import User
 from src.config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from src.tours.utils import fileValidation
 
 router = APIRouter(
     prefix="/files",
@@ -22,6 +23,7 @@ def uploadPhotoToBecket(tourPhotos: List[UploadFile], user: User = Depends(curre
             "details": "Фото успешно загружены в бакет"
         }
     else:
+        fileValidation(tourPhotos)
         client = boto3.client(service_name="s3",
                               endpoint_url='https://storage.yandexcloud.net',
                               aws_access_key_id=AWS_ACCESS_KEY_ID,

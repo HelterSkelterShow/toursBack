@@ -13,7 +13,7 @@ from src.tours.models import tour_schema
 from src.tours.utils import fileValidation, photosOptimization
 from src.auth.models import User
 from src.database import get_async_session
-from src.tours.schemas import TourTempl,TourTemplUpdate
+from src.tours.schemas import TourTempl
 
 router = APIRouter(
     prefix="/tours",
@@ -22,29 +22,9 @@ router = APIRouter(
 
 @router.post("/templates/create")
 async def createTourTemplate(tourPhotos: List[UploadFile],
-                             templ: TourTempl = Depends(TourTempl.as_form),
+                             templ: TourTempl,
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
-    try:
-        fileValidation(tourPhotos)
-        photosPath = []
-        client = boto3.client(service_name="s3",
-                              endpoint_url='https://storage.yandexcloud.net',
-                              aws_access_key_id=AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-
-        for tempFile in tourPhotos:
-            id = uuid.uuid4()
-            url = f"https://storage.yandexcloud.net/mywaytours/{id}"
-            photosPath.append(url)
-            client.upload_fileobj(tempFile.file, 'mywaytours', str(id))
-    except:
-        raise HTTPException(500, detail={
-            "status": "S3_ERROR",
-            "data": None,
-            "details": None
-        })
-
     try:
         query = insert(tour_schema).values(
             tourId = uuid.uuid4(),
@@ -53,7 +33,7 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
             category = templ.category,
             region = templ.region,
             mapPoints = templ.mapPoints,
-            photos = photosPath,
+            photos = templ.tourPhotos,
             tourDescription = templ.tourDescription,
             complexity = templ.complexity,
             freeServices = templ.freeServices,
@@ -77,7 +57,7 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
-                             templ: TourTemplUpdate,
+                             templ: TourTempl,
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     try:
@@ -162,15 +142,6 @@ async def getTourTemplate(id: str,
         query = select(tour_schema).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
         res_dict = dict(result.mappings().first())
-
-        if res_dict["freeServices"] != None:
-            res_dict["freeServices"] = res_dict["freeServices"][0].split(",")
-            res_dict["freeServices"] = [item.encode('utf-8') for item in res_dict["freeServices"]]
-        if res_dict["additionalServices"] != None:
-            res_dict["additionalServices"] = res_dict["additionalServices"][0].split(", ")
-            res_dict["additionalServices"] = [item.encode('utf-8') for item in res_dict["additionalServices"]]
-        if res_dict["photos"] != None:
-            res_dict["photos"] = res_dict["photos"][0].split(",")
 
         return {"status": "success",
                 "data": res_dict,
