@@ -51,7 +51,7 @@ class TourTempl(BaseModel):
    recommendedAgeTo: int
    freeServices: Optional[List[str]]
    additionalServices: Optional[List[str]]
-   oldPhotos: Optional[List[str]]
+
    @staticmethod
    def list_of_lists_converter(mapPoints):
        cleaned_s = mapPoints.replace('"', '')
@@ -65,7 +65,7 @@ class TourTempl(BaseModel):
        return list_of_elems
 
    @classmethod
-   def as_form_create(
+   def as_form(
            cls,
            tourName: str = Form(),
            category: str = Form(),
@@ -89,8 +89,36 @@ class TourTempl(BaseModel):
                   freeServices = TourTempl.list_converter(freeServices) if freeServices is not None else None,
                   additionalServices = TourTempl.list_converter(additionalServices) if additionalServices is not None else None
                   )
+
+class TourTemplUpdate(BaseModel):
+   tourName: str
+   category: str
+   region: str
+   mapPoints: List[List[float]]
+   tourDescription: str
+   complexity: str
+   recommendedAgeFrom: int
+   recommendedAgeTo: int
+   freeServices: Optional[List[str]]
+   additionalServices: Optional[List[str]]
+   oldPhotos: Optional[List[str]]
+   newPhotos: Optional[List[UploadFile]]
+
+   @staticmethod
+   def list_of_lists_converter(mapPoints):
+       cleaned_s = mapPoints.replace('"', '')
+       list_of_lists = [[float(num) for num in sublist.split(',')] for sublist in
+                        cleaned_s.strip('[]').split('],[')]
+       return list_of_lists
+
+   @staticmethod
+   def list_converter(s):
+       cleaned_s = s.replace('"', '')
+       list_of_elems = [str(service) for service in cleaned_s.strip('[]').split('],[')]
+       return list_of_elems
+
    @classmethod
-   def as_form_update(
+   def as_form(
            cls,
            tourName: str = Form(),
            category: str = Form(),
@@ -102,18 +130,22 @@ class TourTempl(BaseModel):
            recommendedAgeTo: int = Form(),
            freeServices: Optional[str] = Form(default=None),
            additionalServices: Optional[str] = Form(default=None),
-           oldPhotos: Optional[str] = Form(default=None)
-      ):
+           oldPhotos: Optional[str] = Form(default=None),
+           newPhotos: Optional[List[UploadFile]] = Form(default=None)
+   ):
        return cls(tourName=tourName,
                   category=category,
-                  region = region,
-                  mapPoints = TourTempl.list_of_lists_converter(mapPoints),
-                  tourDescription = tourDescription,
-                  complexity = complexity,
-                  recommendedAgeFrom = recommendedAgeFrom,
-                  recommendedAgeTo = recommendedAgeTo,
-                  freeServices = TourTempl.list_converter(freeServices) if freeServices is not None else None,
-                  additionalServices = TourTempl.list_converter(additionalServices) if additionalServices is not None else None,
+                  region=region,
+                  mapPoints=TourTempl.list_of_lists_converter(mapPoints),
+                  tourDescription=tourDescription,
+                  complexity=complexity,
+                  recommendedAgeFrom=recommendedAgeFrom,
+                  recommendedAgeTo=recommendedAgeTo,
+                  freeServices=TourTempl.list_converter(freeServices) if freeServices is not None else None,
+                  additionalServices=TourTempl.list_converter(
+                      additionalServices) if additionalServices is not None else None,
                   oldPhotos=TourTempl.list_converter(oldPhotos) if oldPhotos is not None else None,
+                  newPhotos=newPhotos
                   )
+
 

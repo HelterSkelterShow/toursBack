@@ -13,7 +13,7 @@ from src.tours.models import tour_schema
 from src.tours.utils import fileValidation, photosOptimization, updatePhotos
 from src.auth.models import User
 from src.database import get_async_session
-from src.tours.schemas import TourTempl
+from src.tours.schemas import TourTempl, TourTemplUpdate
 
 router = APIRouter(
     prefix="/tours",
@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.post("/templates/create")
 async def createTourTemplate(tourPhotos: List[UploadFile],
-                             templ: TourTempl = Depends(TourTempl.as_form_create),
+                             templ: TourTempl = Depends(TourTempl.as_form),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     try:
@@ -77,8 +77,8 @@ async def createTourTemplate(tourPhotos: List[UploadFile],
 
 @router.put("/templates/{id}")
 async def updateTourTemplate(id: str,
-                             newPhotos: List[UploadFile],
-                             templ: TourTempl = Depends(TourTempl.as_form_update),
+                             # newPhotos: List[UploadFile],
+                             templ: TourTempl = Depends(TourTemplUpdate.as_form),
                              session: AsyncSession = Depends(get_async_session),
                              user: User = Depends(current_user)) -> dict:
     try:
