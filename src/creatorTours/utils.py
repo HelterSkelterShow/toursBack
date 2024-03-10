@@ -1,14 +1,7 @@
-import uuid
-
 from fastapi import HTTPException
-from sqlalchemy import select
 
-from src.config import MAX_FILE_SIZE, MAX_FILE_SUM_SIZE, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID
-from src.tours.models import tour_schema
+from src.config import MAX_FILE_SIZE, MAX_FILE_SUM_SIZE
 
-from src.database import get_async_session
-
-import boto3
 
 def fileValidation(tourPhotos):
     fileSumSize = 0

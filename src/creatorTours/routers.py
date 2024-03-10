@@ -1,23 +1,24 @@
 import uuid
+import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, File
-from sqlalchemy import select, insert, delete, update
+from sqlalchemy import select, insert, delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_user
 import boto3
-from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID
+from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, TIME_TO_UPDATE, TIME_TO_CANCEL
 
-from src.tours.models import tour_schema
-from src.tours.utils import fileValidation, photosOptimization
+from src.creatorTours.models import tour_schema, tours_plan
+from src.creatorTours.utils import fileValidation, photosOptimization
 from src.auth.models import User
 from src.database import get_async_session
-from src.tours.schemas import TourTempl
+from src.creatorTours.schemas import TourTempl, publicTour, publicTourUpdate, TourResponse, TourListResponse
 
 router = APIRouter(
-    prefix="/tours",
-    tags=["tours"]
+    prefix="/creator/tours",
+    tags=["creatorTours"]
 )
 
 @router.post("/templates/create")
@@ -111,6 +112,24 @@ async def deleteTourTemplate(id: str,
                                  user: User = Depends(current_user),
                                  session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
+        stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
+        stmt_query = stmt.select().with_only_columns(tours_plan.c.id.label('publicTourId'), tours_plan.c.dateFrom, tours_plan.c.dateTo)
+        total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
+        total = total_count.scalar()
+        if total > 0:
+            result = await session.execute(stmt_query)
+            res_list = result.mappings().all()
+            list_of_dicts = [dict(row) for row in res_list]
+            for public in list_of_dicts:
+                public["publicTourId"] = str(public["publicTourId"])
+                public["cancelDeadline"] = (public["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)).strftime('%Y-%m-%d')
+                public["dateFrom"] = (public["dateFrom"]).strftime('%Y-%m-%d')
+                public["dateTo"] = (public["dateTo"]).strftime('%Y-%m-%d')
+            raise HTTPException(status_code=300, detail={
+                "status": "redirect",
+                "data": list_of_dicts,
+                "details": "There are several publications, connected with the template"
+            })
         query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
         result = await session.execute(query)
         client = boto3.client(service_name="s3",
@@ -160,6 +179,13 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
         result = await session.execute(query)
         res_list = result.mappings().all()
         list_of_tours = photosOptimization(res_list)
+
+        for templates in list_of_tours:
+            stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == templates["tourId"])
+            stmt_query = stmt.select()
+            total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
+            total = total_count.scalar()
+            templates["publicCount"] = total
         return {"status": "success",
                 "data": list_of_tours,
                 "details": None
@@ -171,6 +197,100 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
             "details":"NOT FOUND"
         })
 
+@router.post("/public/create", response_model=TourResponse)
+async def publicTourCreate(public: publicTour, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = insert(tours_plan).values(
+            id = uuid.uuid4(),
+            schemaId = public.schemaId,
+            price = public.price,
+            dateFrom = public.date.dateFrom,
+            dateTo = public.date.dateFrom,
+            meetingPoint = public.meetingPoint,
+            meetingDatetime = public.meetingDateTime,
+            maxPersonNumber = public.maxPersonNumber,
+        )
+        await session.execute(query)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"DB_ERROR",
+            "data":None,
+            "details":"Error while inserting tour template into database"
+        })
+    return {
+        "status": "success",
+        "data": public,
+        "details": None
+    }
 
+@router.put("/public/{id}")
+async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = update(tours_plan).where(tours_plan.c.id == id).values(
+            price = public.price,
+            dateFrom = public.date.dateFrom,
+            dateTo = public.date.dateFrom,
+            meetingPoint = public.meetingPoint,
+            meetingDatetime = public.meetingDateTime,
+            maxPersonNumber = public.maxPersonNumber,
+        )
+        await session.execute(query)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"DB_ERROR",
+            "data":None,
+            "details":"Error while inserting tour template into database"
+        })
+    return {
+        "status": "success",
+        "data": public,
+        "details": None
+    }
 
+@router.delete("/public/{id}")
+async def publicDelete(id: str, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = update(tours_plan).where(tours_plan.c.id == id).values(
+            state="cancelled"
+        )
+        await session.execute(query)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"DB_ERROR",
+            "data":None,
+            "details":"Error while inserting tour template into database"
+        })
+    return {
+        "status": "success",
+        "data": None,
+        "details": None
+    }
+
+@router.get("/public", response_model=TourListResponse)
+async def publicGetList(year: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
+        query = stmt.select().with_only_columns(tour_schema.c.tourId, tour_schema.c.tourName, tours_plan.c.price, tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime,
+                                                tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom,tours_plan.c.dateTo, tours_plan.c.state)\
+            .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1)))
+        result = await session.execute(query)
+        res_dict = result.mappings().all()
+        list_of_dicts = [dict(row) for row in res_dict]
+        for publicTour in list_of_dicts:
+            publicTour["tourId"] = str(publicTour["tourId"])
+            publicTour["cancelDeadline"] = publicTour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
+            publicTour["updateDeadline"] = publicTour["dateFrom"] - datetime.timedelta(days=TIME_TO_UPDATE)
+        return {"status": "success",
+                "data": list_of_dicts,
+                "details": None
+                }
+    except:
+        raise HTTPException(500, detail={
+            "status": "ERROR",
+            "data": None,
+            "details": "NOT FOUND"
+        })
 

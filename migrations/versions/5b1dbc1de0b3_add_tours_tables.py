@@ -1,4 +1,4 @@
-"""add tours tables
+"""add creatorTours tables
 
 Revision ID: 5b1dbc1de0b3
 Revises: fe6ff402ef2f

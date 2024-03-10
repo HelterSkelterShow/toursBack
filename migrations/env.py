@@ -10,7 +10,7 @@ import sys
 
 from src.config import DB_HOST, DB_PORT, DB_USER, DB_NAME, DB_PASS
 from src.auth.models import *
-from src.tours.models import*
+from src.creatorTours.models import*
 from src.database import metadata, Base
 
 

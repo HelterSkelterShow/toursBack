@@ -33,7 +33,8 @@ tours_plan = Table(
     Column("dateTo", TIMESTAMP, nullable=False),
     Column("meetingPoint", String, nullable=False),
     Column("meetingDatetime", TIMESTAMP, nullable=False),
-    Column("maxPersonNumber", Integer, nullable=False)
+    Column("maxPersonNumber", Integer, nullable=False),
+    Column("state", String, default="isActive")
 )
 
 offers = Table(

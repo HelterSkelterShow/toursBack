@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, UploadFile, Form, File
 from src.auth.base_config import current_user
 from src.auth.models import User
 from src.config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
-from src.tours.utils import fileValidation
+from src.creatorTours.utils import fileValidation
 
 router = APIRouter(
     prefix="/files",
