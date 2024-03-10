@@ -73,3 +73,14 @@ class TourListResponse(BaseModel):
     data: List[TourListData]
     details: str|None = None
 
+class TemplateListRs(BaseModel):
+    tourId: uuid.UUID
+    tourName: str
+    photos: str
+    publicCount: int
+
+class TemplateSearchRs(BaseModel):
+    status: str
+    data: List[TemplateListRs]
+    details: Optional[str]
+

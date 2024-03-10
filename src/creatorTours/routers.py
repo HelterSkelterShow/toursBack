@@ -14,7 +14,8 @@ from src.creatorTours.models import tour_schema, tours_plan
 from src.creatorTours.utils import fileValidation, photosOptimization
 from src.auth.models import User
 from src.database import get_async_session
-from src.creatorTours.schemas import TourTempl, publicTour, publicTourUpdate, TourResponse, TourListResponse
+from src.creatorTours.schemas import TourTempl, publicTour, publicTourUpdate, TourResponse, TourListResponse, \
+    TemplateSearchRs
 
 router = APIRouter(
     prefix="/creator/tours",
@@ -172,7 +173,7 @@ async def getTourTemplate(id: str,
             "details":"NOT FOUND"
         })
 
-@router.get("/templates")
+@router.get("/templates", response_model=TemplateSearchRs)
 async def getTourTemplateList(user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
     try:
         query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.photos).where(tour_schema.c.ownerGidId == user.id)
