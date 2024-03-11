@@ -1,10 +1,9 @@
 import datetime
 import uuid
 from typing import Optional, List
-import json
-from fastapi import UploadFile
-from fastapi import Form
 from pydantic import BaseModel
+
+
 
 class Dates(BaseModel):
     dateFrom: datetime.date
@@ -83,4 +82,3 @@ class TemplateSearchRs(BaseModel):
     status: str
     data: List[TemplateListRs]
     details: Optional[str]
-

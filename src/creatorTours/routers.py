@@ -1,8 +1,7 @@
 import uuid
 import datetime
-from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, File
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, insert, delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,10 +10,10 @@ import boto3
 from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, TIME_TO_UPDATE, TIME_TO_CANCEL
 
 from src.creatorTours.models import tour_schema, tours_plan
-from src.creatorTours.utils import fileValidation, photosOptimization
+from src.creatorTours.utils import photosOptimization
 from src.auth.models import User
 from src.database import get_async_session
-from src.creatorTours.schemas import TourTempl, publicTour, publicTourUpdate, TourResponse, TourListResponse, \
+from src.creatorTours.schemas import TourTempl, publicTour, publicTourUpdate, TourListResponse, \
     TemplateSearchRs
 
 router = APIRouter(
@@ -198,11 +197,12 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
             "details":"NOT FOUND"
         })
 
-@router.post("/public/create", response_model=TourResponse)
+@router.post("/public/create")
 async def publicTourCreate(public: publicTour, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    id = uuid.uuid4()
     try:
         query = insert(tours_plan).values(
-            id = uuid.uuid4(),
+            id = id,
             schemaId = public.schemaId,
             price = public.price,
             dateFrom = public.date.dateFrom,
@@ -221,7 +221,10 @@ async def publicTourCreate(public: publicTour, user: User = Depends(current_user
         })
     return {
         "status": "success",
-        "data": public,
+        "data": {"publicTourId":id,
+                 "canceldeadLine":public.date.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
+                 "updateDeadline":public.date.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
+                 "tourAmountWithCommission":public.price},
         "details": None
     }
 
@@ -246,7 +249,10 @@ async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(c
         })
     return {
         "status": "success",
-        "data": public,
+        "data": {"publicTourId":id,
+                 "canceldeadLine":public.date.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
+                 "updateDeadline":public.date.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
+                 "tourAmountWithCommission":public.price},
         "details": None
     }
 
