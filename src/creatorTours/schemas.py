@@ -56,7 +56,8 @@ class TourResponse(BaseModel):
 
 
 class TourListData(BaseModel):
-    tourId: str
+    tourId: uuid.UUID
+    publicTourId: uuid.UUID
     tourName: str
     price: int
     meetingPoint: str

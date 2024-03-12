@@ -280,14 +280,13 @@ async def publicDelete(id: str, user: User = Depends(current_user), session: Asy
 async def publicGetList(year: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
-        query = stmt.select().with_only_columns(tour_schema.c.tourId, tour_schema.c.tourName, tours_plan.c.price, tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime,
+        query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price, tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime,
                                                 tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom,tours_plan.c.dateTo, tours_plan.c.state)\
             .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1)))
         result = await session.execute(query)
         res_dict = result.mappings().all()
         list_of_dicts = [dict(row) for row in res_dict]
         for publicTour in list_of_dicts:
-            publicTour["tourId"] = str(publicTour["tourId"])
             publicTour["cancelDeadline"] = publicTour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
             publicTour["updateDeadline"] = publicTour["dateFrom"] - datetime.timedelta(days=TIME_TO_UPDATE)
         return {"status": "success",
