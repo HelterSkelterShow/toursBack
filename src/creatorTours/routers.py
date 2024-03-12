@@ -203,12 +203,12 @@ async def publicTourCreate(public: publicTour, user: User = Depends(current_user
     try:
         query = insert(tours_plan).values(
             id = id,
-            schemaId = public.schemaId,
-            price = public.price,
+            schemaId = public.tourId,
+            price = public.tourAmount,
             dateFrom = public.date.dateFrom,
             dateTo = public.date.dateFrom,
             meetingPoint = public.meetingPoint,
-            meetingDatetime = public.meetingDateTime,
+            meetingDatetime = public.meetingTime,
             maxPersonNumber = public.maxPersonNumber,
         )
         await session.execute(query)
@@ -224,7 +224,7 @@ async def publicTourCreate(public: publicTour, user: User = Depends(current_user
         "data": {"publicTourId":id,
                  "canceldeadLine":public.date.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
                  "updateDeadline":public.date.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
-                 "tourAmountWithCommission":public.price},
+                 "tourAmountWithCommission":public.tourAmount},
         "details": None
     }
 
@@ -232,11 +232,11 @@ async def publicTourCreate(public: publicTour, user: User = Depends(current_user
 async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
         query = update(tours_plan).where(tours_plan.c.id == id).values(
-            price = public.price,
+            price = public.tourAmount,
             dateFrom = public.date.dateFrom,
             dateTo = public.date.dateFrom,
             meetingPoint = public.meetingPoint,
-            meetingDatetime = public.meetingDateTime,
+            meetingDatetime = public.meetingTime,
             maxPersonNumber = public.maxPersonNumber,
         )
         await session.execute(query)
@@ -252,7 +252,7 @@ async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(c
         "data": {"publicTourId":id,
                  "canceldeadLine":public.date.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
                  "updateDeadline":public.date.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
-                 "tourAmountWithCommission":public.price},
+                 "tourAmountWithCommission":public.tourAmount},
         "details": None
     }
 

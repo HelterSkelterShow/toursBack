@@ -12,8 +12,8 @@ class recommendedAge(BaseModel):
     ageTo: int|None = None
 
 class Dates(BaseModel):
-    dateFrom: datetime.date|None = None
-    dateTo: datetime.date|None = None
+    dateFrom: datetime.datetime|None = None
+    dateTo: datetime.datetime|None = None
 
 class TourSearchRq(BaseModel):
     region: str|None = None

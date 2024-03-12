@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON, Boolean, MetaData, UUID
+from sqlalchemy import Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON, Boolean, MetaData, UUID, DateTime
 
 from src.auth.models import User
-from src.database import metadata
+from src.database import Base, metadata
 
 tour_schema = Table(
     "tour_schema",
@@ -29,12 +29,12 @@ tours_plan = Table(
     Column("id", UUID, primary_key=True),
     Column("schemaId", UUID, ForeignKey(tour_schema.c.tourId)),
     Column("price", Integer, nullable=False),
-    Column("dateFrom", TIMESTAMP, nullable=False),
-    Column("dateTo", TIMESTAMP, nullable=False),
+    Column("dateFrom", TIMESTAMP(timezone=True), nullable=False),
+    Column("dateTo", TIMESTAMP(timezone=True) , nullable=False),
     Column("meetingPoint", String, nullable=False),
-    Column("meetingDatetime", TIMESTAMP, nullable=False),
+    Column("meetingDatetime", TIMESTAMP(timezone=True) , nullable=False),
     Column("maxPersonNumber", Integer, nullable=False),
-    Column("state", String, default="isActive")
+    Column("state", String, default="isActive"),
 )
 
 offers = Table(

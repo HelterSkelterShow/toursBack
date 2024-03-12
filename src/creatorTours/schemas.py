@@ -6,15 +6,15 @@ from pydantic import BaseModel
 
 
 class Dates(BaseModel):
-    dateFrom: datetime.date
-    dateTo: datetime.date
+    dateFrom: datetime.datetime
+    dateTo: datetime.datetime
 
 class publicTour(BaseModel):
-    schemaId: str
-    price: int
+    tourId: str
+    tourAmount: int
     date: Dates
     meetingPoint: str
-    meetingDateTime: datetime.date
+    meetingTime: datetime.datetime
     maxPersonNumber:int
 
 class publicTourUpdate(BaseModel):
@@ -46,7 +46,7 @@ class TourResponseData(BaseModel):
     price: int
     date: Dates
     meetingPoint: str
-    meetingDateTime: datetime.date
+    meetingDateTime: datetime.datetime
     maxPersonNumber: int
 
 class TourResponse(BaseModel):
@@ -60,12 +60,12 @@ class TourListData(BaseModel):
     tourName: str
     price: int
     meetingPoint: str
-    meetingDatetime: datetime.date
+    meetingDatetime: datetime.datetime
     maxPersonNumber: int
-    dateFrom: datetime.date
-    dateTo: datetime.date
-    cancelDeadline: datetime.date
-    updateDeadline: datetime.date
+    dateFrom: datetime.datetime
+    dateTo: datetime.datetime
+    cancelDeadline: datetime.datetime
+    updateDeadline: datetime.datetime
 
 class TourListResponse(BaseModel):
     status: str
