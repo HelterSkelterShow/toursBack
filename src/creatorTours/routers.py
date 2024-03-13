@@ -227,7 +227,7 @@ async def publicTourCreate(public: publicTour, user: User = Depends(current_user
         "status": "success",
         "data": {"publicTourId": res_dict["id"],
                  "tourName": res_dict["tourName"],
-                 "cancelDeadLine": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
+                 "cancelDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
                  "updateDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
                  },
         "details": None
@@ -290,9 +290,9 @@ async def publicDelete(id: str, user: User = Depends(current_user), session: Asy
 @router.get("/public", response_model=TourListResponse)
 async def publicGetList(year: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
-        query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'), tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime,
-                                                tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom,tours_plan.c.dateTo, tours_plan.c.state)\
+        stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
+        query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'), tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime.label('meetingTime'),
+                                                tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo, tours_plan.c.state, User.name, User.email, User.phone)\
             .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1)) & (tours_plan.c.state != "cancelled"))
         result = await session.execute(query)
         res_dict = result.mappings().all()
