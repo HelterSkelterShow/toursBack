@@ -56,7 +56,7 @@ class TourListData(BaseModel):
     tourId: uuid.UUID
     publicTourId: uuid.UUID
     tourName: str
-    price: int
+    tourAmount: int
     meetingPoint: str
     meetingDatetime: datetime.datetime
     maxPersonNumber: int
