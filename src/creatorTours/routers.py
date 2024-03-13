@@ -199,20 +199,24 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
 
 @router.post("/public/create")
 async def publicTourCreate(public: publicTour, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
-    id = uuid.uuid4()
     try:
         query = insert(tours_plan).values(
-            id = id,
+            id = uuid.uuid4(),
             schemaId = public.tourId,
             price = public.tourAmount,
-            dateFrom = public.date.dateFrom,
-            dateTo = public.date.dateTo,
+            dateFrom = public.dateFrom,
+            dateTo = public.dateTo,
             meetingPoint = public.meetingPoint,
             meetingDatetime = public.meetingTime,
             maxPersonNumber = public.maxPersonNumber,
         )
         await session.execute(query)
         await session.commit()
+
+        stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
+        query = stmt.select().with_only_columns(tour_schema.c.tourName, tours_plan.c.id).where(tour_schema.c.tourId == public.tourId)
+        result = await session.execute(query)
+        res_dict = dict(result.mappings().first())
     except:
         raise HTTPException(500, detail={
             "status":"DB_ERROR",
@@ -221,10 +225,11 @@ async def publicTourCreate(public: publicTour, user: User = Depends(current_user
         })
     return {
         "status": "success",
-        "data": {"publicTourId":id,
-                 "canceldeadLine":public.date.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
-                 "updateDeadline":public.date.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
-                 "tourAmountWithCommission":public.tourAmount},
+        "data": {"publicTourId": res_dict["id"],
+                 "tourName": res_dict["tourName"],
+                 "cancelDeadLine": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
+                 "updateDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
+                 },
         "details": None
     }
 
@@ -233,14 +238,19 @@ async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(c
     try:
         query = update(tours_plan).where(tours_plan.c.id == id).values(
             price = public.tourAmount,
-            dateFrom = public.date.dateFrom,
-            dateTo = public.date.dateFrom,
+            dateFrom = public.dateFrom,
+            dateTo = public.dateFrom,
             meetingPoint = public.meetingPoint,
             meetingDatetime = public.meetingTime,
             maxPersonNumber = public.maxPersonNumber,
         )
         await session.execute(query)
         await session.commit()
+
+        stmt = tour_schema.join(tours_plan, (tours_plan.c.id == id) & (tours_plan.c.schemaId == tour_schema.c.tourId))
+        query = stmt.select().with_only_columns(tour_schema.c.tourName, tours_plan.c.id)
+        result = await session.execute(query)
+        res_dict = dict(result.mappings().first())
     except:
         raise HTTPException(500, detail={
             "status":"DB_ERROR",
@@ -249,10 +259,11 @@ async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(c
         })
     return {
         "status": "success",
-        "data": {"publicTourId":id,
-                 "canceldeadLine":public.date.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
-                 "updateDeadline":public.date.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
-                 "tourAmountWithCommission":public.tourAmount},
+        "data": {"publicTourId": res_dict["id"],
+                 "tourName": res_dict["tourName"],
+                 "cancelDeadLine": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
+                 "updateDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
+                 },
         "details": None
     }
 

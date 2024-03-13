@@ -3,25 +3,21 @@ import uuid
 from typing import Optional, List
 from pydantic import BaseModel
 
-
-
-class Dates(BaseModel):
-    dateFrom: datetime.datetime
-    dateTo: datetime.datetime
-
 class publicTour(BaseModel):
     tourId: str
     tourAmount: int
-    date: Dates
+    dateFrom: datetime.datetime
+    dateTo: datetime.datetime
     meetingPoint: str
     meetingTime: datetime.datetime
     maxPersonNumber:int
 
 class publicTourUpdate(BaseModel):
-    price: int
-    date: Dates
+    tourAmount: int
+    dateFrom: datetime.datetime
+    dateTo: datetime.datetime
     meetingPoint: str
-    meetingDateTime: datetime.date
+    meetingTime: datetime.date
     maxPersonNumber:int
 
 class RecomendedAge(BaseModel):
@@ -44,7 +40,8 @@ class TourTempl(BaseModel):
 class TourResponseData(BaseModel):
     schemaId: str
     price: int
-    date: Dates
+    dateFrom: datetime.datetime
+    dateTo: datetime.datetime
     meetingPoint: str
     meetingDateTime: datetime.datetime
     maxPersonNumber: int
