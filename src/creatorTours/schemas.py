@@ -58,12 +58,15 @@ class TourListData(BaseModel):
     tourName: str
     tourAmount: int
     meetingPoint: str
-    meetingDatetime: datetime.datetime
+    meetingTime: datetime.datetime
     maxPersonNumber: int
     dateFrom: datetime.datetime
     dateTo: datetime.datetime
     cancelDeadline: datetime.datetime
     updateDeadline: datetime.datetime
+    name: str
+    phone: str
+    email: str
 
 class TourListResponse(BaseModel):
     status: str
