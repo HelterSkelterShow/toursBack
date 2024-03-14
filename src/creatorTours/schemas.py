@@ -17,7 +17,7 @@ class publicTourUpdate(BaseModel):
     dateFrom: datetime.datetime
     dateTo: datetime.datetime
     meetingPoint: str
-    meetingTime: datetime.date
+    meetingTime: datetime.datetime
     maxPersonNumber:int
 
 class RecomendedAge(BaseModel):
@@ -64,9 +64,6 @@ class TourListData(BaseModel):
     dateTo: datetime.datetime
     cancelDeadline: datetime.datetime
     updateDeadline: datetime.datetime
-    name: str
-    phone: str
-    email: str
 
 class TourListResponse(BaseModel):
     status: str
@@ -83,3 +80,4 @@ class TemplateSearchRs(BaseModel):
     status: str
     data: List[TemplateListRs]
     details: Optional[str]
+

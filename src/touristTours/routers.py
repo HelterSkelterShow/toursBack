@@ -47,6 +47,12 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
             if searchRq.prices.max:
                 query = query.filter(tours_plan.c.price < searchRq.prices.max)
 
+        if searchRq.recommendedAge:
+            if searchRq.recommendedAge.min:
+                query = query.filter(tour_schema.c.recommendedAgeFrom >= searchRq.recommendedAge.min)
+            if searchRq.recommendedAge.max:
+                query = query.filter(tour_schema.c.recommendedAgeTo >= searchRq.recommendedAge.max)
+
         if searchRq.maxPerson:
             query = query.filter(tours_plan.maxPerson >= searchRq.maxPerson)
         if searchRq.searchParam:
@@ -92,11 +98,10 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
                                                 tours_plan.c.meetingDatetime, tours_plan.c.maxPersonNumber, tour_schema.c.complexity,
                                                 tour_schema.c.mapPoints, tour_schema.c.tourDescription,
                                                 tour_schema.c.freeServices, tour_schema.c.additionalServices,
-                                                tour_schema.c.recommendedAgeFrom, tour_schema.c.recommendedAgeTo,
+                                                tour_schema.c.recommendedAgeFrom, tour_schema.c.recommendedAgeTo
                                                 ).where(tours_plan.c.id == id)
         result = await session.execute(query)
         res_dict = dict(result.mappings().first())
-        res_dict["id"] = str(res_dict["id"])
 
         return {"status": "success",
                 "data": res_dict,
@@ -108,3 +113,4 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
             "data":None,
             "details":"NOT FOUND"
         })
+

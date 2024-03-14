@@ -9,7 +9,7 @@ from src.config import SECRET_AUTH, SESSION_LIFETIME
 cookie_transport = CookieTransport(cookie_name="SESSION", cookie_max_age=SESSION_LIFETIME, cookie_httponly=True, cookie_samesite="none")
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET_AUTH, lifetime_seconds=3600)
+    return JWTStrategy(secret=SECRET_AUTH, lifetime_seconds=SESSION_LIFETIME)
 
 auth_backend = AuthenticationBackend(
     name="jwt",

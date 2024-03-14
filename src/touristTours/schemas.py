@@ -15,15 +15,21 @@ class Dates(BaseModel):
     dateFrom: datetime.datetime|None = None
     dateTo: datetime.datetime|None = None
 
+class RecommendedAge(BaseModel):
+    min: int|None = None
+    max: int|None = None
+
 class TourSearchRq(BaseModel):
     region: str|None = None
     tourdate: Dates|None = None
+    age: Dates | None = None
     complexity: List[str]|None = None
     category: List[str]|None = None
     prices: Price|None = None
     maxPerson: int|None = None
     toursDuration: int|None = None
     searchParam: str|None = None
+    recommendedAge: RecommendedAge|None = None
 
 class TourSearchRs(BaseModel):
     id: str
@@ -47,7 +53,7 @@ class RsList(BaseModel):
     details: pagination
 
 class TourData(BaseModel):
-    id: str
+    id: uuid.UUID
     creatorName: str
     tourName: str
     price: int
@@ -66,6 +72,7 @@ class TourData(BaseModel):
     additionalServices: List[str]
     recommendedAgeFrom: int
     recommendedAgeTo: int
+
 
 class TourResponse(BaseModel):
     status: str

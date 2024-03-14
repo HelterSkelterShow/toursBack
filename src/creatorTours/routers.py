@@ -182,7 +182,7 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
 
         for templates in list_of_tours:
             stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == templates["tourId"])
-            stmt_query = stmt.select()
+            stmt_query = stmt.select().where(tours_plan.c.state == "isActive")
             total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
             total = total_count.scalar()
             templates["publicCount"] = total
@@ -292,7 +292,7 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
     try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
         query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'), tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime.label('meetingTime'),
-                                                tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo, tours_plan.c.state, User.name, User.email, User.phone)\
+                                                tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo, tours_plan.c.state)\
             .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1)) & (tours_plan.c.state != "cancelled"))
         result = await session.execute(query)
         res_dict = result.mappings().all()

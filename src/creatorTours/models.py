@@ -43,8 +43,9 @@ offers = Table(
     Column("id", UUID, primary_key=True),
     Column("tourPlanId", UUID, ForeignKey(tours_plan.c.id)),
     Column("touristId", Integer, ForeignKey(User.id)),
-    Column("bookingTime", TIMESTAMP, default=datetime.utcnow),
-    Column("touristsAmount", Integer, nullable=False),
-    Column("paymentState", Boolean, nullable=False),
-    Column("cancellation", Boolean, default=False)
+    Column("bookingTime", TIMESTAMP(timezone=True), default=datetime.utcnow),
+    Column("tourAmount", Integer, nullable=False),
+    Column("tourists", JSON, nullable=False),
+    Column("cancellation", Boolean, default=False),
+    Column("comment", String, nullable=True)
 )
