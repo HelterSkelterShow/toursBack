@@ -73,7 +73,6 @@ class TourData(BaseModel):
     recommendedAgeFrom: int
     recommendedAgeTo: int
 
-
 class TourResponse(BaseModel):
     status: str
     data: TourData

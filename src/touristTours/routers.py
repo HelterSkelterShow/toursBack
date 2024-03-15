@@ -29,9 +29,9 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
         query = query.filter(tours_plan.c.state == "isActive")
         if searchRq.tourdate:
             if searchRq.tourdate.dateFrom:
-                query = query.filter(tours_plan.c.dateFrom > searchRq.tourdate.dateFrom)
+                query = query.filter(tours_plan.c.dateFrom >= searchRq.tourdate.dateFrom)
             if searchRq.tourdate.dateTo:
-                query = query.filter(tours_plan.c.dateTo > searchRq.tourdate.dateTo)
+                query = query.filter(tours_plan.c.dateTo <= searchRq.tourdate.dateTo)
         if searchRq.region:
             query = query.filter(tour_schema.c.region == searchRq.region)
 
@@ -51,7 +51,7 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
             if searchRq.recommendedAge.min:
                 query = query.filter(tour_schema.c.recommendedAgeFrom >= searchRq.recommendedAge.min)
             if searchRq.recommendedAge.max:
-                query = query.filter(tour_schema.c.recommendedAgeTo >= searchRq.recommendedAge.max)
+                query = query.filter(tour_schema.c.recommendedAgeTo <= searchRq.recommendedAge.max)
 
         if searchRq.maxPerson:
             query = query.filter(tours_plan.maxPerson >= searchRq.maxPerson)
@@ -68,9 +68,6 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
         result = await session.execute(paginated_query)
         res_list = result.mappings().all()
         list_of_tours = photosOptimization(res_list)
-        for tour in list_of_tours:
-            tour["id"] = str(tour["id"])
-
         return {
             "status": "success",
             "data": list_of_tours,

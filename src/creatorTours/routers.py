@@ -239,7 +239,7 @@ async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(c
         query = update(tours_plan).where(tours_plan.c.id == id).values(
             price = public.tourAmount,
             dateFrom = public.dateFrom,
-            dateTo = public.dateFrom,
+            dateTo = public.dateTo,
             meetingPoint = public.meetingPoint,
             meetingDatetime = public.meetingTime,
             maxPersonNumber = public.maxPersonNumber,
@@ -261,7 +261,7 @@ async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(c
         "status": "success",
         "data": {"publicTourId": res_dict["id"],
                  "tourName": res_dict["tourName"],
-                 "cancelDeadLine": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
+                 "cancelDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
                  "updateDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
                  },
         "details": None
