@@ -3,6 +3,9 @@ import uuid
 from typing import Optional, List
 from pydantic import BaseModel
 
+from src.bookings.schemas import Tourist
+
+
 class publicTour(BaseModel):
     tourId: str
     tourAmount: int
@@ -51,7 +54,13 @@ class TourResponse(BaseModel):
     data: TourResponseData
     details: str|None = None
 
-
+class BookingInfo(BaseModel):
+    id: uuid.UUID
+    cancellation: bool
+    bookingTime: datetime.datetime
+    tourAmount:datetime.datetime
+    tourists: List[Tourist]
+    comment: str
 class TourListData(BaseModel):
     tourId: uuid.UUID
     publicTourId: uuid.UUID
@@ -63,7 +72,7 @@ class TourListData(BaseModel):
     dateFrom: datetime.datetime
     dateTo: datetime.datetime
     cancelDeadline: datetime.datetime
-    updateDeadline: datetime.datetime
+    bookingInfo: List[BookingInfo]
 
 class TourListResponse(BaseModel):
     status: str

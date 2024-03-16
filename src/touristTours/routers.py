@@ -77,6 +77,7 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
                 "hasMore": hasMore
             }
         }
+
     except:
         raise HTTPException(500, detail={
             "status": "ERROR",

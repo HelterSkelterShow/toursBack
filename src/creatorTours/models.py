@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON, Boolean, MetaData, UUID, DateTime
+from sqlalchemy.orm import relationship
 
 from src.auth.models import User
 from src.database import Base, metadata
@@ -47,5 +48,5 @@ offers = Table(
     Column("tourAmount", Integer, nullable=False),
     Column("tourists", JSON, nullable=False),
     Column("cancellation", Boolean, default=False),
-    Column("comment", String, nullable=True)
+    Column("comment", String, nullable=True),
 )

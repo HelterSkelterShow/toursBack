@@ -1,3 +1,4 @@
+import json
 import uuid
 import datetime
 
@@ -9,7 +10,7 @@ from src.auth.base_config import current_user
 import boto3
 from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, TIME_TO_UPDATE, TIME_TO_CANCEL
 
-from src.creatorTours.models import tour_schema, tours_plan
+from src.creatorTours.models import tour_schema, tours_plan, offers
 from src.creatorTours.utils import photosOptimization
 from src.auth.models import User
 from src.database import get_async_session
@@ -228,41 +229,6 @@ async def publicTourCreate(public: publicTour, user: User = Depends(current_user
         "data": {"publicTourId": res_dict["id"],
                  "tourName": res_dict["tourName"],
                  "cancelDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
-                 "updateDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
-                 },
-        "details": None
-    }
-
-@router.put("/public/{id}")
-async def publicUpdate(id: str, public: publicTourUpdate, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
-    try:
-        query = update(tours_plan).where(tours_plan.c.id == id).values(
-            price = public.tourAmount,
-            dateFrom = public.dateFrom,
-            dateTo = public.dateTo,
-            meetingPoint = public.meetingPoint,
-            meetingDatetime = public.meetingTime,
-            maxPersonNumber = public.maxPersonNumber,
-        )
-        await session.execute(query)
-        await session.commit()
-
-        stmt = tour_schema.join(tours_plan, (tours_plan.c.id == id) & (tours_plan.c.schemaId == tour_schema.c.tourId))
-        query = stmt.select().with_only_columns(tour_schema.c.tourName, tours_plan.c.id)
-        result = await session.execute(query)
-        res_dict = dict(result.mappings().first())
-    except:
-        raise HTTPException(500, detail={
-            "status":"DB_ERROR",
-            "data":None,
-            "details":"Error while inserting tour template into database"
-        })
-    return {
-        "status": "success",
-        "data": {"publicTourId": res_dict["id"],
-                 "tourName": res_dict["tourName"],
-                 "cancelDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_CANCEL),
-                 "updateDeadline": public.dateFrom - datetime.timedelta(days=TIME_TO_UPDATE),
                  },
         "details": None
     }
@@ -291,15 +257,30 @@ async def publicDelete(id: str, user: User = Depends(current_user), session: Asy
 async def publicGetList(year: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
-        query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'), tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime.label('meetingTime'),
+
+        query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'),
+                                                tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime.label('meetingTime'),
                                                 tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo, tours_plan.c.state)\
-            .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1)) & (tours_plan.c.state != "cancelled"))
+            .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1))
+                    & (tours_plan.c.state != "cancelled") & (tour_schema.c.ownerGidId == user.id))
         result = await session.execute(query)
         res_dict = result.mappings().all()
         list_of_dicts = [dict(row) for row in res_dict]
-        for publicTour in list_of_dicts:
-            publicTour["cancelDeadline"] = publicTour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
-            publicTour["updateDeadline"] = publicTour["dateFrom"] - datetime.timedelta(days=TIME_TO_UPDATE)
+
+        for tour in list_of_dicts:
+            tour["cancelDeadline"] = tour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
+
+            query = offers.select().with_only_columns(offers.c.id, offers.c.cancellation,
+                                                      offers.c.bookingTime, offers.c.tourAmount,
+                                                      offers.c.tourists, offers.c.comment) \
+                .filter(offers.c.tourPlanId == tour["publicTourId"])
+            bookings_res = await session.execute(query)
+            bookings_res = bookings_res.mappings().all()
+            list_of_bookings = [dict(row) for row in bookings_res]
+            for booking in list_of_bookings:
+                booking["tourists"] = json.loads(booking["tourists"])
+            tour["bookingInfo"] = list_of_bookings
+
         return {"status": "success",
                 "data": list_of_dicts,
                 "details": None
