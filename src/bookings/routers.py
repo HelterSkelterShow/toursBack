@@ -4,7 +4,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 from select import select
-from sqlalchemy import insert
+from sqlalchemy import insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 
@@ -116,6 +116,30 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
         "data": list_of_dicts,
         "details": None
     }
+
+@router.post("/{id}")
+async def cancelBooking(id: uuid.UUID, user = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = update(offers)\
+            .where((offers.c.touristId == user.id) & (offers.c.id == id)).\
+            values(cancellation=True)
+
+        await session.execute(query)
+        await session.commit()
+    except:
+        raise HTTPException(404, detail={
+            "status":"Error",
+            "data":None,
+            "details":"No tour publication to cancel"
+        })
+
+    return {
+        "status": "success",
+        "data": id,
+        "details": None
+    }
+
+
 
 # @router.get("")
 # async def getBooking(session: AsyncSession = Depends(get_async_session)):
