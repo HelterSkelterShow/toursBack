@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, insert, update
@@ -122,7 +122,8 @@ async def createClaim(claim: claimRq, user: User = Depends(current_user), sessio
                 touristId = user.id,
                 publicTourId = claim.publicTourId,
                 gidEmail = claim.gidEmail,
-                description = claim.description
+                description = claim.description,
+                type="claim"
             )
         await session.execute(query)
         tourStateQuery = update(tours_plan).where(tours_plan.c.id == claim.publicTourId).values(state="consideration")
@@ -139,3 +140,26 @@ async def createClaim(claim: claimRq, user: User = Depends(current_user), sessio
         "data":None,
         "details":None
     }
+
+@router.post("/appeal/create")
+async def createClaim(description: str = Body(...), user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = insert(claims).values(
+                touristId = user.id,
+                description = description,
+                type="appeal"
+            )
+        await session.execute(query)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"Error",
+            "data":None,
+            "details":"Error while creating a claim"
+        })
+    return {
+        "status":"success",
+        "data":None,
+        "details":None
+    }
+

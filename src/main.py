@@ -19,6 +19,7 @@ from src.touristTours.routers import router as router_tourist
 from src.bookings.routers import router as router_booking
 from src.admin.routers import router as router_admin
 from src.admin.routers import router_claims
+from src.admin.routers import router_appeals
 
 
 app = FastAPI()
@@ -87,3 +88,5 @@ app.include_router(router_booking)
 app.include_router(router_admin)
 
 app.include_router(router_claims)
+
+app.include_router(router_appeals)
