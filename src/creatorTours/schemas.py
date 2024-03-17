@@ -88,5 +88,5 @@ class TemplateListRs(BaseModel):
 class TemplateSearchRs(BaseModel):
     status: str
     data: List[TemplateListRs]
-    details: Optional[str]
+    details: str|None = None
 

@@ -8,9 +8,9 @@ from src.creatorTours.models import tours_plan
 from src.database import Base, metadata
 
 claims = Table(
-    "claims",
+    "claim",
     metadata,
-    Column("claimId", UUID, primary_key=True),
+    Column("claimId", Integer, primary_key=True, autoincrement=True),
     Column("touristId", Integer, ForeignKey(User.id)),
     Column("gidEmail", String, nullable=False),
     Column("description", String, nullable=False),

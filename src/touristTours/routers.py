@@ -1,16 +1,19 @@
+import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func
+from sqlalchemy import func, insert, update
 
+from src.admin.models import claims
+from src.auth.base_config import current_user
 from src.auth.models import User
 from src.config import TOURS_PER_PAGE
 from src.creatorTours.models import tour_schema, tours_plan
 from src.creatorTours.utils import photosOptimization
 from src.database import get_async_session
-from src.touristTours.schemas import TourSearchRq, RsList, TourResponse
+from src.touristTours.schemas import TourSearchRq, RsList, TourResponse, claimRq
 
 router = APIRouter(
     prefix="/tours",
@@ -112,3 +115,27 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
             "details":"NOT FOUND"
         })
 
+@router.post("/claim/create")
+async def createClaim(claim: claimRq, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = insert(claims).values(
+                touristId = user.id,
+                publicTourId = claim.publicTourId,
+                gidEmail = claim.gidEmail,
+                description = claim.description
+            )
+        await session.execute(query)
+        tourStateQuery = update(tours_plan).where(tours_plan.c.id == claim.publicTourId).values(state="consideration")
+        await session.execute(tourStateQuery)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"Error",
+            "data":None,
+            "details":"Error while creating a claim"
+        })
+    return {
+        "status":"success",
+        "data":None,
+        "details":None
+    }

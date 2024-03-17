@@ -77,3 +77,8 @@ class TourResponse(BaseModel):
     status: str
     data: TourData
     details: str|None = None
+
+class claimRq(BaseModel):
+    description: str
+    publicTourId: uuid.UUID
+    gidEmail: str
