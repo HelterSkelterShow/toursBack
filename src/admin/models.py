@@ -12,9 +12,10 @@ claims = Table(
     metadata,
     Column("claimId", Integer, primary_key=True, autoincrement=True),
     Column("touristId", Integer, ForeignKey(User.id)),
-    Column("gidEmail", String, nullable=False),
+    Column("gidEmail", String, nullable=True),
     Column("description", String, nullable=False),
-    Column("publicTourId", UUID, ForeignKey(tours_plan.c.id)),
+    Column("publicTourId", UUID, ForeignKey(tours_plan.c.id), nullable=True),
     Column("state", String, default="consideration"),
     Column("creationDateTime", TIMESTAMP, default=datetime.utcnow),
+    Column("type", String, nullable=True)
 )
