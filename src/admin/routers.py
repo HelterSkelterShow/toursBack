@@ -1,0 +1,99 @@
+import json
+import uuid
+
+from sqlalchemy import select, func, update
+from src.auth.base_config import current_user
+from src.config import TOURISTS_PER_PAGE
+from src.creatorTours.models import offers
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func
+
+from src.auth.models import User
+from src.creatorTours.utils import photosOptimization
+from src.database import get_async_session
+
+router = APIRouter(
+    prefix = "/admin/users",
+    tags=["admin"]
+)
+
+router_claims = APIRouter(
+    prefix = "/admin/claims",
+    tags=["admin"]
+)
+
+@router.get("/list")
+async def getAllUsers(emailString:str, page: int,  user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = select(User).where(User.email.like(f'%{emailString}%')).with_only_columns(User.id, User.name, User.email, User.is_active)
+
+        total_count = await session.execute(query.with_only_columns(func.count().label('total')))
+        total = total_count.scalar()
+
+        hasMore = True if page * TOURISTS_PER_PAGE < total else False
+
+        paginated_query = query.limit(TOURISTS_PER_PAGE).offset((page - 1) * TOURISTS_PER_PAGE)
+        result = await session.execute(paginated_query)
+        res_list = result.mappings().all()
+        list_of_users = [dict(row) for row in res_list]
+    except:
+        raise HTTPException(500, detail={
+            "status":"Error",
+            "data":None,
+            "details":"Error while getting users from database"
+        })
+    return {
+        "status": "success",
+        "data": list_of_users,
+        "details": {
+            "page": page,
+            "perPage": TOURISTS_PER_PAGE,
+            "hasMore": hasMore
+        }
+    }
+
+
+@router.post("/block/{id}")
+async def blockUser(id: uuid.UUID, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = update(User).where(User.id == id).values(isActive = False)
+        await session.execute(query)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"Error",
+            "data":None,
+            "details":"Error while blocking user"
+        })
+    return {
+        "status":"success",
+        "data":id,
+        "details":"user blocked"
+    }
+
+@router.post("/unblock/{id}")
+async def unblockUser(id: uuid.UUID, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    try:
+        query = update(User).where(User.id == id).values(isActive = True)
+        await session.execute(query)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"Error",
+            "data":None,
+            "details":"Error while unblocking user"
+        })
+    return {
+        "status":"success",
+        "data":id,
+        "details":"user blocked"
+    }
+
+# @router_claims.get("/list")
+# async def getClaimList(page: int,  user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+
+
+
+
