@@ -16,6 +16,7 @@ from src.auth.models import User
 from src.database import get_async_session
 from src.creatorTours.schemas import TourTempl, publicTour, publicTourUpdate, TourListResponse, \
     TemplateSearchRs
+from src.touristTours.schemas import Dates
 
 router = APIRouter(
     prefix="/creator/tours",
@@ -291,4 +292,24 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
             "data": None,
             "details": "NOT FOUND"
         })
+
+@router.post("/statistics")
+async def getStatistics(date: Dates, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+    stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(offers, tours_plan.c.id == offers.c.tourPlanId)
+    query = stmt.select().with_only_columns(tour_schema.c.tourName,
+                                            func.sum(offers.c.touristsAmount).label('touristsAmount'),
+                                            func.sum(offers.c.tourAmount).label('tourAmount')) \
+        .filter((tour_schema.c.ownerGidId == user.id) & (tours_plan.c.dateFrom >= date.dateFrom) & (tours_plan.c.dateFrom <= date.dateTo)) \
+        .group_by(tour_schema.c.tourName)
+    result = await session.execute(query)
+    result = result.mappings().all()
+    list_of_dicts = [dict(row) for row in result]
+    return {
+        "status":"success",
+        "data":list_of_dicts,
+        "details":None
+    }
+
+
+
 

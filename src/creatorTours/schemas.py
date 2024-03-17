@@ -90,3 +90,7 @@ class TemplateSearchRs(BaseModel):
     data: List[TemplateListRs]
     details: str|None = None
 
+class Dates:
+    dateFrom: datetime.datetime
+    dateTo: datetime.datetime
+

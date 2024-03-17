@@ -49,4 +49,5 @@ offers = Table(
     Column("tourists", JSON, nullable=False),
     Column("cancellation", Boolean, default=False),
     Column("comment", String, nullable=True),
+    Column("touristsAmount", Integer, nullable=False)
 )

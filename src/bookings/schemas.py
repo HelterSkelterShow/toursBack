@@ -12,6 +12,7 @@ class BookingRq(BaseModel):
     tourAmount: int
     tourists: List[Tourist]
     comment: str | None = None
+    touristsAmount: int
 
 class Tour(BaseModel):
     tourId: uuid.UUID

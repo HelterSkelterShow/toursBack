@@ -37,7 +37,8 @@ async def createBooking(booking: BookingRq, user: User = Depends(current_user), 
             tourAmount = booking.tourAmount,
             tourists = tourists_json,
             comment = booking.comment,
-            touristId = user.id
+            touristId = user.id,
+            touristsAmount = booking.touristsAmount
         )
         await session.execute(query)
         await session.commit()
@@ -138,21 +139,4 @@ async def cancelBooking(id: uuid.UUID, user = Depends(current_user), session: As
         "data": id,
         "details": None
     }
-
-
-
-# @router.get("")
-# async def getBooking(session: AsyncSession = Depends(get_async_session)):
-#     stmt = offers
-#     query = stmt.select()
-#     result = await session.execute(query)
-#     res_list = result.mappings().all()
-#     list_of_dicts = [dict(row) for row in res_list]
-#     for offer in list_of_dicts:
-#         offer["tourists"] = json.loads(offer["tourists"])
-#     return {
-#         "status": "success",
-#         "data": list_of_dicts,
-#         "details": None
-#     }
 

@@ -230,4 +230,3 @@ async def confirmAppeal(calimId: int, user: User = Depends(current_user), sessio
         "details":None
     }
 
-
