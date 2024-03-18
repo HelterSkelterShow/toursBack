@@ -32,7 +32,7 @@ class TourSearchRq(BaseModel):
     recommendedAge: RecommendedAge|None = None
 
 class TourSearchRs(BaseModel):
-    id: str
+    id: uuid.UUID
     tourName: str
     photos: str
     category: str

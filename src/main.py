@@ -1,15 +1,14 @@
-from fastapi import FastAPI, Body, Path, Depends
+from datetime import datetime
+
+import uvicorn
+from apscheduler.triggers.cron import CronTrigger
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from pytz import utc
 
-from src.auth.base_config import current_user
-from src.auth.models import User
-#from src.auth.routers import router as router_auth
-from fastapi import APIRouter
 from src.auth.base_config import auth_backend, fastapi_users
-from src.auth.schemas import UserRead, UserCreate
 
-from src.auth.manager import get_user_manager
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
 from src.creatorTours.routers import router as router_tours
 from src.auth.routers import router as router_users
@@ -39,6 +38,10 @@ app.add_middleware(
     allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin",
                    "Authorization"],
 )
+
+# scheduler = AsyncIOScheduler(timezone=utc)
+# scheduler.add_job(printer, trigger=CronTrigger(hour='*', minute='*/1'))
+# scheduler.start()
 
 #app.include_router(router_auth)
 app.include_router(
