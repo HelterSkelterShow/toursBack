@@ -62,7 +62,7 @@ async def getAllUsers(emailString:str, roleId: int, page: int,  user: User = Dep
 @router.post("/block/{id}")
 async def blockUser(id: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        query = update(User).where(User.id == id).values(isActive = False)
+        query = update(User).where(User.id == id).values(is_active = False)
         await session.execute(query)
         await session.commit()
     except:
@@ -80,7 +80,7 @@ async def blockUser(id: int, user: User = Depends(current_user), session: AsyncS
 @router.post("/unblock/{id}")
 async def unblockUser(id: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        query = update(User).where(User.id == id).values(isActive = True)
+        query = update(User).where(User.id == id).values(is_active = True)
         await session.execute(query)
         await session.commit()
     except:
