@@ -8,7 +8,7 @@ class UserListRs(BaseModel):
     email: str
     phone: str
     role_id: int
-    isActive: bool
+    is_active: bool
 class TemplateSearchRs(BaseModel):
     status: str
     data: List[UserListRs]

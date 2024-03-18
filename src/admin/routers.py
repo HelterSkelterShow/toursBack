@@ -1,10 +1,6 @@
-import json
-import uuid
-
 from sqlalchemy import select, func, update
 
 from src.admin.models import claims
-from src.admin.schemas import UserListRs
 from src.auth.base_config import current_user
 from src.config import TOURISTS_PER_PAGE, CLAIMS_PER_PAGE
 from src.creatorTours.models import offers, tours_plan
@@ -32,10 +28,10 @@ router_appeals = APIRouter(
     tags=["admin"]
 )
 
-@router.get("/list", response_model=UserListRs)
-async def getAllUsers(emailString:str, page: int,  user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+@router.get("/list")
+async def getAllUsers(emailString:str, roleId: int, page: int,  user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        query = select(User).where(User.email.like(f'%{emailString}%')).with_only_columns(User.id, User.name, User.email, User.phone, User.role_id, User.is_active)
+        query = select(User).where(User.email.like(f'%{emailString}%') & (User.role_id == roleId)).with_only_columns(User.id, User.name, User.email, User.phone, User.role_id, User.is_active)
 
         total_count = await session.execute(query.with_only_columns(func.count().label('total')))
         total = total_count.scalar()
