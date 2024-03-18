@@ -133,12 +133,12 @@ async def getClaimList(page: int,  user: User = Depends(current_user), session: 
     }
 
 @router_claims.post("/confirm")
-async def confirmClaim(clamId: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+async def confirmClaim(claimId: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        stmt = select(claims).where(claims.c.claimId == clamId)
+        stmt = select(claims).where(claims.c.claimId == claimId)
         claim = await session.execute(stmt)
         claim = dict(claim.mappings().first())
-        query = update(claims).where(claims.c.claimId == clamId).values(state="confirmed")
+        query = update(claims).where(claims.c.claimId == claimId).values(state="confirmed")
         await session.execute(query)
         query_tours_plan = update(tours_plan).where(tours_plan.c.id == claim["publicTourId"]).values(state="refund")
         await session.execute(query_tours_plan)
@@ -156,12 +156,12 @@ async def confirmClaim(clamId: int, user: User = Depends(current_user), session:
     }
 
 @router_claims.post("/reject")
-async def rejectClaim(clamId: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+async def rejectClaim(claimId: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        stmt = select(claims).where(claims.c.claimId == clamId)
+        stmt = select(claims).where(claims.c.claimId == claimId)
         claim = await session.execute(stmt)
         claim = dict(claim.mappings().first())
-        query = update(claims).where(claims.c.claimId == clamId).values(state="rejected")
+        query = update(claims).where(claims.c.claimId == claimId).values(state="rejected")
         await session.execute(query)
         query_tours_plan = update(tours_plan).where(tours_plan.c.id == claim["publicTourId"]).values(state="isActive")
         await session.execute(query_tours_plan)
