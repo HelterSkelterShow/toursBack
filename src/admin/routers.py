@@ -3,7 +3,7 @@ from sqlalchemy import select, func, update
 from src.admin.models import claims
 from src.auth.base_config import current_user
 from src.config import TOURISTS_PER_PAGE, CLAIMS_PER_PAGE
-from src.creatorTours.models import offers, tours_plan
+from src.creatorTours.models import offers, tours_plan, tour_schema
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -98,9 +98,12 @@ async def unblockUser(id: int, user: User = Depends(current_user), session: Asyn
 @router_claims.get("/list")
 async def getClaimList(page: int,  user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
-        stmt = claims.join(User, claims.c.touristId == User.id)
+        stmt = claims.join(User, claims.c.touristId == User.id)\
+            .join(tours_plan, tours_plan.c.id == claims.c.publicTourId)\
+            .join(tour_schema, tour_schema.c.tourId == tours_plan.c.schemaId)
+
         query = stmt.select().where((claims.c.state == "consideration") & (claims.c.type == "claim"))\
-            .with_only_columns(User.email.label("touristEmail"), claims.c.claimId,
+            .with_only_columns(User.email.label("touristEmail"), claims.c.claimId, tour_schema.c.tourName,
                                claims.c.gidEmail, claims.c.description,
                                claims.c.publicTourId, claims.c.state,
                                claims.c.creationDateTime)
