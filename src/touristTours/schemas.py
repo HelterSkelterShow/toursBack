@@ -68,10 +68,10 @@ class TourData(BaseModel):
     complexity: str
     mapPoints: List[List[float]]
     tourDescription: str
-    freeServices: List[str]
-    additionalServices: List[str]
-    recommendedAgeFrom: int|None = None
-    recommendedAgeTo: int|None = None
+    freeServices: List[str]|None = None
+    additionalServices: List[str]|None = None
+    recommendedAgeFrom: int
+    recommendedAgeTo: int
     vacancies: int
 
 class TourResponse(BaseModel):
