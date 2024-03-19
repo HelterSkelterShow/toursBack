@@ -70,8 +70,8 @@ class TourData(BaseModel):
     tourDescription: str
     freeServices: List[str]
     additionalServices: List[str]
-    recommendedAgeFrom: int
-    recommendedAgeTo: int
+    recommendedAgeFrom: int|None = None
+    recommendedAgeTo: int|None = None
     vacancies: int
 
 class TourResponse(BaseModel):
