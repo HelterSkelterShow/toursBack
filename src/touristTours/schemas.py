@@ -66,7 +66,7 @@ class TourData(BaseModel):
     meetingDatetime: datetime.datetime
     maxPersonNumber: int
     complexity: str
-    mapPoints: List[List[int]]
+    mapPoints: List[List[float]]
     tourDescription: str
     freeServices: List[str]
     additionalServices: List[str]
