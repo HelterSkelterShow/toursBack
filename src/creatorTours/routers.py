@@ -177,7 +177,7 @@ async def getTourTemplate(id: str,
 @router.get("/templates", response_model=TemplateSearchRs)
 async def getTourTemplateList(user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
     try:
-        query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.photos).where(tour_schema.c.ownerGidId == user.id)
+        query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.category,  tour_schema.c.photos).where(tour_schema.c.ownerGidId == user.id)
         result = await session.execute(query)
         res_list = result.mappings().all()
         list_of_tours = photosOptimization(res_list)
