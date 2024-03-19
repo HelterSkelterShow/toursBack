@@ -10,7 +10,7 @@ from src.admin.models import claims
 from src.auth.base_config import current_user
 from src.auth.models import User
 from src.config import TOURS_PER_PAGE
-from src.creatorTours.models import tour_schema, tours_plan
+from src.creatorTours.models import tour_schema, tours_plan, offers
 from src.creatorTours.utils import photosOptimization
 from src.database import get_async_session
 from src.touristTours.schemas import TourSearchRq, RsList, TourResponse, claimRq
@@ -90,9 +90,9 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
 
 @router.get("/{id}", response_model=TourResponse)
 async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session)) -> dict:
-    try:
+    # try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
-        query = stmt.select().with_only_columns(tours_plan.c.id, User.name.label('creatorName'), tour_schema.c.tourName, tours_plan.c.price,
+        query = stmt.select().with_only_columns(tours_plan.c.id.label('publicTourId'), User.name.label('creatorName'), tour_schema.c.tourName, tours_plan.c.price,
                                                 tour_schema.c.region, tour_schema.c.category,
                                                 tour_schema.c.photos, tours_plan.c.dateFrom,
                                                 tours_plan.c.dateTo, tours_plan.c.meetingPoint,
@@ -104,16 +104,24 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
         result = await session.execute(query)
         res_dict = dict(result.mappings().first())
 
+        query = offers.select()\
+            .with_only_columns(func.count().label('total')) \
+            .filter(offers.c.tourPlanId == res_dict["publicTourId"])
+        result = await session.execute(query)
+        result = result.scalar()
+        res_dict["vacancies"] = res_dict["maxPersonNumber"] - result
+
+
         return {"status": "success",
                 "data": res_dict,
                 "details": None
                 }
-    except:
-        raise HTTPException(500, detail={
-            "status":"ERROR",
-            "data":None,
-            "details":"NOT FOUND"
-        })
+    # except:
+    #     raise HTTPException(500, detail={
+    #         "status":"ERROR",
+    #         "data":None,
+    #         "details":"NOT FOUND"
+    #     })
 
 @router.post("/claim/create")
 async def createClaim(claim: claimRq, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:

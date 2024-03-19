@@ -53,7 +53,7 @@ class RsList(BaseModel):
     details: pagination
 
 class TourData(BaseModel):
-    id: uuid.UUID
+    publicTourId: uuid.UUID
     creatorName: str
     tourName: str
     price: int
@@ -72,6 +72,7 @@ class TourData(BaseModel):
     additionalServices: List[str]
     recommendedAgeFrom: int
     recommendedAgeTo: int
+    vacancies: int
 
 class TourResponse(BaseModel):
     status: str

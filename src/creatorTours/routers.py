@@ -176,28 +176,28 @@ async def getTourTemplate(id: str,
 
 @router.get("/templates", response_model=TemplateSearchRs)
 async def getTourTemplateList(user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
-    try:
-        query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.category,  tour_schema.c.photos).where(tour_schema.c.ownerGidId == user.id)
-        result = await session.execute(query)
-        res_list = result.mappings().all()
-        list_of_tours = photosOptimization(res_list)
+    # try:
+    query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.category,  tour_schema.c.photos).where(tour_schema.c.ownerGidId == user.id)
+    result = await session.execute(query)
+    res_list = result.mappings().all()
+    list_of_tours = photosOptimization(res_list)
 
-        for templates in list_of_tours:
-            stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == templates["tourId"])
-            stmt_query = stmt.select().where((tours_plan.c.state == "isActive") & (tour_schema.c.dateFrom < datetime.datetime.utcnow()))
-            total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
-            total = total_count.scalar()
-            templates["publicCount"] = total
-        return {"status": "success",
-                "data": list_of_tours,
-                "details": None
-                }
-    except:
-        raise HTTPException(500, detail={
-            "status":"ERROR",
-            "data":None,
-            "details":"NOT FOUND"
-        })
+    for templates in list_of_tours:
+        stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == templates["tourId"])
+        stmt_query = stmt.select().where((tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom < datetime.datetime.utcnow()))
+        total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
+        total = total_count.scalar()
+        templates["publicCount"] = total
+    return {"status": "success",
+            "data": list_of_tours,
+            "details": None
+            }
+    # except:
+    #     raise HTTPException(500, detail={
+    #         "status":"ERROR",
+    #         "data":None,
+    #         "details":"NOT FOUND"
+    #     })
 
 @router.post("/public/create")
 async def publicTourCreate(public: publicTour, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
@@ -260,7 +260,7 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
 
         query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'),
-                                                tours_plan.c.meetingPoint,tours_plan.c.meetingDatetime.label('meetingTime'),
+                                                tours_plan.c.meetingPoint, tours_plan.c.meetingDatetime.label('meetingTime'),
                                                 tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo, tours_plan.c.state)\
             .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1))
                     & (tours_plan.c.state != "cancelled") & (tour_schema.c.ownerGidId == user.id))
