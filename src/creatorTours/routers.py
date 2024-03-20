@@ -184,7 +184,7 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
 
     for templates in list_of_tours:
         stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == templates["tourId"])
-        stmt_query = stmt.select().where((tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom < datetime.datetime.utcnow()))
+        stmt_query = stmt.select().where((tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom > datetime.datetime.utcnow()))
         total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
         total = total_count.scalar()
         templates["publicCount"] = total
