@@ -176,28 +176,30 @@ async def getTourTemplate(id: str,
 
 @router.get("/templates", response_model=TemplateSearchRs)
 async def getTourTemplateList(user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
-    # try:
-    query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.category,  tour_schema.c.photos).where(tour_schema.c.ownerGidId == user.id)
-    result = await session.execute(query)
-    res_list = result.mappings().all()
-    list_of_tours = photosOptimization(res_list)
+    try:
+        query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.category,
+                       tour_schema.c.photos, tour_schema.c.region, tour_schema.c.complexity)\
+            .where(tour_schema.c.ownerGidId == user.id)
+        result = await session.execute(query)
+        res_list = result.mappings().all()
+        list_of_tours = photosOptimization(res_list)
 
-    for templates in list_of_tours:
-        stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == templates["tourId"])
-        stmt_query = stmt.select().where((tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom > datetime.datetime.utcnow()))
-        total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
-        total = total_count.scalar()
-        templates["publicCount"] = total
-    return {"status": "success",
-            "data": list_of_tours,
-            "details": None
-            }
-    # except:
-    #     raise HTTPException(500, detail={
-    #         "status":"ERROR",
-    #         "data":None,
-    #         "details":"NOT FOUND"
-    #     })
+        for templates in list_of_tours:
+            stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == tour_schema.c.tourId)
+            stmt_query = stmt.select().where((tour_schema.c.tourId == templates["tourId"]) & (tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom > datetime.datetime.utcnow()))
+            total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
+            total = total_count.scalar()
+            templates["publicCount"] = total
+        return {"status": "success",
+                "data": list_of_tours,
+                "details": None
+                }
+    except:
+        raise HTTPException(500, detail={
+            "status":"ERROR",
+            "data":None,
+            "details":"NOT FOUND"
+        })
 
 @router.post("/public/create")
 async def publicTourCreate(public: publicTour, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:

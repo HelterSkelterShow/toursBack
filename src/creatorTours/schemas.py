@@ -84,6 +84,9 @@ class TemplateListRs(BaseModel):
     tourName: str
     photos: str
     publicCount: int
+    category: str
+    region: str
+    complexity: str
 
 class TemplateSearchRs(BaseModel):
     status: str
