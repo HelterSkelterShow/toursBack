@@ -3,10 +3,8 @@ import json
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from select import select
 from sqlalchemy import insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
 
 from src.auth.base_config import current_user
 from src.auth.models import User
@@ -63,8 +61,8 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
             "details": "Booking is available only for tourists"
         })
     try:
-        stmt = offers.join(User, User.id == offers.c.touristId).join(tours_plan, tours_plan.c.id == offers.c.tourPlanId) \
-            .join(tour_schema, tours_plan.c.schemaId == tour_schema.c.tourId)
+        stmt = offers.join(tours_plan, tours_plan.c.id == offers.c.tourPlanId) \
+            .join(tour_schema, tours_plan.c.schemaId == tour_schema.c.tourId).join(User, User.id == tour_schema.c.ownerGidId)
 
         query = stmt.select().with_only_columns(tours_plan.c.state.label('statusBooking'), tours_plan.c.id.label('publicTourId'),
                                                 tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'),
@@ -74,7 +72,7 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
                                                 tours_plan.c.dateTo, tours_plan.c.state, User.email, User.phone,
                                                 User.name, offers.c.id, tour_schema.c.mapPoints,
                                                 tour_schema.c.additionalServices, tour_schema.c.freeServices, tour_schema.c.tourId) \
-            .filter(User.id == user.id)
+            .filter((offers.c.touristId == user.id) & (offers.c.cancellation == False))
         if isFinished:
             query = query.filter(tours_plan.c.dateTo <= datetime.datetime.utcnow())
         else:

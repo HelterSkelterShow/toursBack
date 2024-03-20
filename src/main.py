@@ -1,5 +1,5 @@
 from datetime import datetime
-
+import pika
 import uvicorn
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
@@ -10,6 +10,7 @@ from pytz import utc
 from src.auth.base_config import auth_backend, fastapi_users
 
 from src.auth.schemas import UserRead, UserCreate, UserUpdate
+# from src.config import RABBIT_USERNAME, RABBIT_HOST, RABBIT_PORT, RABBIT_PASSWORD
 from src.creatorTours.routers import router as router_tours
 from src.auth.routers import router as router_users
 from src.catalogs.routers import router as router_catalogs
@@ -93,3 +94,23 @@ app.include_router(router_admin)
 app.include_router(router_claims)
 
 app.include_router(router_appeals)
+
+# @app.post("/sendToQueue")
+# def sendToQueue():
+#     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_HOST, port=RABBIT_PORT, credentials=pika.PlainCredentials(f'{RABBIT_USERNAME}', f'{RABBIT_PASSWORD}')))
+#     channel = connection.channel()
+#     channel.queue_declare(queue='hello')
+#     channel.basic_publish(exchange='', routing_key='hello', body='Hello World!')
+#     print(" [x] Sent 'Hello World!'")
+#     connection.close()
+#
+# @app.post("/redFromQueue")
+# def sendToQueue():
+#     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_HOST, port=RABBIT_PORT, credentials=pika.PlainCredentials(f'{RABBIT_USERNAME}', f'{RABBIT_PASSWORD}')))
+#     channel = connection.channel()
+#     channel.queue_declare(queue='hello')
+#     def callback(ch, method, properties, body):
+#         print(" [x] Received %r" % body)
+#     channel.basic_consume(callback, queue='hello', no_ack=True)
+#     print(' [*] Waiting for messages, press CTRL+C to exit')
+#     channel.start_consuming()
