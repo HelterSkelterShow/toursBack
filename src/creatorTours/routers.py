@@ -1,4 +1,5 @@
 import json
+import math
 import uuid
 import datetime
 
@@ -282,7 +283,7 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
             tour["cancelDeadline"] = tour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
 
             if amount_res != None:
-                tour["profit"] = int(amount_res // COMMISSION)
+                tour["profit"] = int(math.ceil(amount_res/COMMISSION))
             else:
                 tour["profit"] = 0
 
