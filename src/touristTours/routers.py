@@ -29,7 +29,7 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
 
         subquery_count = offers.select()\
             .with_only_columns(func.count())\
-            .where(offers.c.tourPlanId == tours_plan.c.id).label('count_1')
+            .filter((offers.c.tourPlanId == tours_plan.c.id) & (offers.c.cancellation == False)).label('count_1')
 
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
         query = stmt.select().with_only_columns(tours_plan.c.id.label('tourId'),
