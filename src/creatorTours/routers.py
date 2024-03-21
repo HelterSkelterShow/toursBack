@@ -282,7 +282,7 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
             tour["cancelDeadline"] = tour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
 
             if amount_res != None:
-                tour["profit"] = amount_res - amount_res // COMMISSION
+                tour["profit"] = int(amount_res // COMMISSION)
             else:
                 tour["profit"] = 0
 
