@@ -118,7 +118,7 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
 
         query = offers.select()\
             .with_only_columns(func.sum(offers.c.touristsAmount).label('total')) \
-            .filter(offers.c.tourPlanId == res_dict["publicTourId"])
+            .filter((offers.c.tourPlanId == res_dict["publicTourId"]) & (offers.c.cancellation == False))
         result = await session.execute(query)
         result = result.scalar()
         if result == None:
