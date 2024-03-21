@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func
 
 from src.auth.models import User
-from src.creatorTours.utils import photosOptimization
 from src.database import get_async_session
 
 router = APIRouter(
@@ -61,21 +60,20 @@ async def getAllUsers(emailString:str, roleId: int, page: int,  user: User = Dep
 
 @router.post("/block/{id}")
 async def blockUser(id: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
-    # try:
-    query = update(User).where(User.id == id).values(is_active = False)
-    await session.execute(query)
-    # stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == tour_schema.c.tourId)
-    query_tours_plan_ref = update(tours_plan).values(state="refund")
-    query_tours_plan_ref = query_tours_plan_ref.filter(tour_schema.c.ownerGidId == id)
-    query_tours_plan_ref = query_tours_plan_ref.filter(tours_plan.c.state in ["isActive", "consideration"])
-    await session.execute(query_tours_plan_ref)
-    await session.commit()
-    # except:
-    #     raise HTTPException(500, detail={
-    #         "status":"Error",
-    #         "data":None,
-    #         "details":"Error while blocking user"
-    #     })
+    try:
+        query = update(User).where(User.id == id).values(is_active = False)
+        await session.execute(query)
+        query_tours_plan_ref = update(tours_plan).values(state="refund")
+        query_tours_plan_ref = query_tours_plan_ref.filter(tour_schema.c.ownerGidId == id)
+        query_tours_plan_ref = query_tours_plan_ref.filter(tours_plan.c.state in ["isActive", "consideration"])
+        await session.execute(query_tours_plan_ref)
+        await session.commit()
+    except:
+        raise HTTPException(500, detail={
+            "status":"Error",
+            "data":None,
+            "details":"Error while blocking user"
+        })
     return {
         "status":"success",
         "data":id,

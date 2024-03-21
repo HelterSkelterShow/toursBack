@@ -258,7 +258,7 @@ async def publicDelete(id: str, user: User = Depends(current_user), session: Asy
 
 @router.get("/public", response_model=TourListResponse)
 async def publicGetList(year: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
-    try:
+    # try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
 
         query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'),
@@ -277,7 +277,7 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
             query = stmt.select().with_only_columns(User.name, User.email, User.phone ,offers.c.id.label('bookingId'), offers.c.cancellation,
                                                       offers.c.bookingTime, offers.c.tourAmount,
                                                       offers.c.tourists, offers.c.comment) \
-                .filter((offers.c.tourPlanId == tour["publicTourId"]) & (offers.c.cancelled == False))
+                .filter((offers.c.tourPlanId == tour["publicTourId"]) & (offers.c.cancellation == False))
             bookings_res = await session.execute(query)
             bookings_res = bookings_res.mappings().all()
             list_of_bookings = [dict(row) for row in bookings_res]
@@ -289,12 +289,12 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
                 "data": list_of_dicts,
                 "details": None
                 }
-    except:
-        raise HTTPException(500, detail={
-            "status": "ERROR",
-            "data": None,
-            "details": "NOT FOUND"
-        })
+    # except:
+    #     raise HTTPException(500, detail={
+    #         "status": "ERROR",
+    #         "data": None,
+    #         "details": "NOT FOUND"
+    #     })
 
 @router.post("/statistics")
 async def getStatistics(date: Dates, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
