@@ -23,9 +23,14 @@ router = APIRouter(
 @router.post("/search", response_model=RsList)
 async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: int = TOURS_PER_PAGE,  session: AsyncSession = Depends(get_async_session)) -> dict:
         #try:
-        subquery = offers.select().\
-            with_only_columns(func.sum(offers.c.touristsAmount)).\
-            filter(offers.c.tourPlanId == tours_plan.c.id).correlate(tours_plan)
+        subquery = offers.select()\
+            .with_only_columns(func.sum(offers.c.touristsAmount))\
+            .filter((offers.c.tourPlanId == tours_plan.c.id) & (offers.c.cancellation == False)).correlate(tours_plan)
+
+        subquery_count = offers.select()\
+            .with_only_columns(func.count())\
+            .where(offers.c.tourPlanId == tours_plan.c.id).label('count_1')
+
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
         query = stmt.select().with_only_columns(tours_plan.c.id.label('tourId'),
                                                 tour_schema.c.tourName, tours_plan.c.price,
@@ -34,7 +39,7 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
                                                 tours_plan.c.dateTo, tours_plan.c.state)
         query = query.filter(tours_plan.c.dateFrom >= datetime.now())
         query = query.filter(tours_plan.c.state == "isActive")
-        query = query.filter(tours_plan.c.maxPersonNumber > subquery)
+        query = query.filter((tours_plan.c.maxPersonNumber > subquery) | (subquery_count == 0))
 
         if searchRq.tourdate:
             if searchRq.tourdate.dateFrom:
