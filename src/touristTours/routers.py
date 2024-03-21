@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.post("/search", response_model=RsList)
 async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: int = TOURS_PER_PAGE,  session: AsyncSession = Depends(get_async_session)) -> dict:
-    try:
+    # try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
         query = stmt.select().with_only_columns(tours_plan.c.id.label('tourId'), tour_schema.c.tourName, tours_plan.c.price,
                                                 tour_schema.c.region, tour_schema.c.category,
@@ -30,7 +30,7 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
                                                 tours_plan.c.dateTo, tours_plan.c.state)
         query = query.filter(tours_plan.c.dateFrom >= datetime.now())
         query = query.filter(tours_plan.c.state == "isActive")
-        query = query.filter(tour_schema.c.isFull == False)
+  #      query = query.filter(tour_schema.c.isFull == False)
 
         if searchRq.tourdate:
             if searchRq.tourdate.dateFrom:
@@ -83,12 +83,12 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
             }
         }
 
-    except:
-        raise HTTPException(500, detail={
-            "status": "ERROR",
-            "data": None,
-            "details": "Exception while trying to get tours from database"
-        })
+    # except:
+    #     raise HTTPException(500, detail={
+    #         "status": "ERROR",
+    #         "data": None,
+    #         "details": "Exception while trying to get tours from database"
+    #     })
 
 @router.get("/{id}", response_model=TourResponse)
 async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session)) -> dict:
