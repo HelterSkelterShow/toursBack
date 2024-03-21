@@ -64,8 +64,10 @@ async def blockUser(id: int, user: User = Depends(current_user), session: AsyncS
     # try:
     query = update(User).where(User.id == id).values(is_active = False)
     await session.execute(query)
-    stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == tour_schema.c.tourId)
-    query_tours_plan_ref = stmt.update().where(tour_schema.c.ownerGidId == id).values(state="refund")
+    # stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == tour_schema.c.tourId)
+    query_tours_plan_ref = update(tours_plan).values(state="refund")
+    query_tours_plan_ref = query_tours_plan_ref.filter(tour_schema.c.ownerGidId == id)
+    query_tours_plan_ref = query_tours_plan_ref.filter(tours_plan.c.state in ["isActive", "consideration"])
     await session.execute(query_tours_plan_ref)
     await session.commit()
     # except:
