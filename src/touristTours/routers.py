@@ -23,6 +23,9 @@ router = APIRouter(
 @router.post("/search", response_model=RsList)
 async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: int = TOURS_PER_PAGE,  session: AsyncSession = Depends(get_async_session)) -> dict:
     # try:
+
+        # subquery = offers.select().with_only_columns(func.sum(tours_plan.tourists_amount)).filter(offers.tour_plan_id == tours_plan.id).correlate(tours_plan).as_scalar()
+
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
         query = stmt.select().with_only_columns(tours_plan.c.id.label('tourId'), tour_schema.c.tourName, tours_plan.c.price,
                                                 tour_schema.c.region, tour_schema.c.category,
@@ -30,6 +33,8 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
                                                 tours_plan.c.dateTo, tours_plan.c.state)
         query = query.filter(tours_plan.c.dateFrom >= datetime.now())
         query = query.filter(tours_plan.c.state == "isActive")
+        # query = query.filter(tours_plan.max_person_number < subquery)
+
   #      query = query.filter(tour_schema.c.isFull == False)
 
         if searchRq.tourdate:
@@ -70,6 +75,8 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
         hasMore = True if page*perPage < total else False
 
         paginated_query = query.limit(perPage).offset((page - 1) * perPage)
+
+        print(query)
         result = await session.execute(paginated_query)
         res_list = result.mappings().all()
         list_of_tours = photosOptimization(res_list)
@@ -82,7 +89,6 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
                 "hasMore": hasMore
             }
         }
-
     # except:
     #     raise HTTPException(500, detail={
     #         "status": "ERROR",
