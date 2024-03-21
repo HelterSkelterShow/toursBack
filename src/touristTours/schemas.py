@@ -22,7 +22,6 @@ class RecommendedAge(BaseModel):
 class TourSearchRq(BaseModel):
     region: str|None = None
     tourdate: Dates|None = None
-    age: Dates | None = None
     complexity: List[str]|None = None
     category: List[str]|None = None
     prices: Price|None = None

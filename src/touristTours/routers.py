@@ -57,9 +57,9 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
 
         if searchRq.prices:
             if searchRq.prices.min:
-                query = query.filter(tours_plan.c.price > searchRq.prices.min)
+                query = query.filter(tours_plan.c.price >= searchRq.prices.min)
             if searchRq.prices.max:
-                query = query.filter(tours_plan.c.price < searchRq.prices.max)
+                query = query.filter(tours_plan.c.price <= searchRq.prices.max)
 
         if searchRq.recommendedAge:
             if searchRq.recommendedAge.min:

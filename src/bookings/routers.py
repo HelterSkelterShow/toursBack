@@ -119,7 +119,7 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
     }
 
 @router.post("/{id}")
-async def cancelBooking(id: uuid.UUID, publicTourId: uuid.UUID, user = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+async def cancelBooking(id: uuid.UUID, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
         query = update(offers)\
             .where((offers.c.touristId == user.id) & (offers.c.id == id)).\
