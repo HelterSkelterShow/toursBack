@@ -36,6 +36,7 @@ tours_plan = Table(
     Column("meetingDatetime", TIMESTAMP(timezone=True) , nullable=False),
     Column("maxPersonNumber", Integer, nullable=False),
     Column("state", String, default="isActive"),
+    Column("isFull", Boolean, default=False)
 )
 
 offers = Table(

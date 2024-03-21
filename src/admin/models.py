@@ -16,6 +16,6 @@ claims = Table(
     Column("description", String, nullable=False),
     Column("publicTourId", UUID, ForeignKey(tours_plan.c.id), nullable=True),
     Column("state", String, default="consideration"),
-    Column("creationDateTime", TIMESTAMP, default=datetime.utcnow),
+    Column("creationDateTime", TIMESTAMP(timezone=True), default=datetime.utcnow),
     Column("type", String, nullable=True)
 )

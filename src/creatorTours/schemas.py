@@ -55,12 +55,16 @@ class TourResponse(BaseModel):
     details: str|None = None
 
 class BookingInfo(BaseModel):
-    id: uuid.UUID
+    bookingId: uuid.UUID
     cancellation: bool
     bookingTime: datetime.datetime
-    tourAmount:datetime.datetime
+    tourAmount: int
     tourists: List[Tourist]
     comment: str
+    name: str
+    email: str
+    phone: str
+
 class TourListData(BaseModel):
     tourId: uuid.UUID
     publicTourId: uuid.UUID

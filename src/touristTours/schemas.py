@@ -83,3 +83,8 @@ class claimRq(BaseModel):
     description: str
     publicTourId: uuid.UUID
     gidEmail: str
+
+class questRq(BaseModel):
+    creatorEmail: str
+    theme: str
+    content: str

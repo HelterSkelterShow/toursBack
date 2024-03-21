@@ -13,7 +13,7 @@ from src.config import TOURS_PER_PAGE
 from src.creatorTours.models import tour_schema, tours_plan, offers
 from src.creatorTours.utils import photosOptimization
 from src.database import get_async_session
-from src.touristTours.schemas import TourSearchRq, RsList, TourResponse, claimRq
+from src.touristTours.schemas import TourSearchRq, RsList, TourResponse, claimRq, questRq
 
 router = APIRouter(
     prefix="/tours",
@@ -24,12 +24,14 @@ router = APIRouter(
 async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: int = TOURS_PER_PAGE,  session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
-        query = stmt.select().with_only_columns(tours_plan.c.id, tour_schema.c.tourName, tours_plan.c.price,
+        query = stmt.select().with_only_columns(tours_plan.c.id.label('tourId'), tour_schema.c.tourName, tours_plan.c.price,
                                                 tour_schema.c.region, tour_schema.c.category,
                                                 tour_schema.c.photos, tours_plan.c.dateFrom,
                                                 tours_plan.c.dateTo, tours_plan.c.state)
         query = query.filter(tours_plan.c.dateFrom >= datetime.now())
         query = query.filter(tours_plan.c.state == "isActive")
+        query = query.filter(tour_schema.c.isFull == False)
+
         if searchRq.tourdate:
             if searchRq.tourdate.dateFrom:
                 query = query.filter(tours_plan.c.dateFrom >= searchRq.tourdate.dateFrom)
@@ -105,7 +107,7 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
         res_dict = dict(result.mappings().first())
 
         query = offers.select()\
-            .with_only_columns(func.count().label('total')) \
+            .with_only_columns(func.sum(offers.c.touristsAmount).label('total')) \
             .filter(offers.c.tourPlanId == res_dict["publicTourId"])
         result = await session.execute(query)
         result = result.scalar()
@@ -171,3 +173,11 @@ async def createClaim(description: str = Body(...), user: User = Depends(current
         "details":None
     }
 
+@router.post("/quest")
+def questionToCreator(quest: questRq, user=Depends(current_user)):
+    #do nothing
+    return {
+        "status":"success",
+        "data":None,
+        "details":None
+    }

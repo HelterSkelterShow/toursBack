@@ -3,7 +3,7 @@ import json
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import insert, update
+from sqlalchemy import insert, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_user
@@ -27,6 +27,19 @@ async def createBooking(booking: BookingRq, user: User = Depends(current_user), 
             "details": "Booking is available only for tourists"
         })
     try:
+        # stmt = offers.join(tours_plan, tours_plan.c.id == offers.c.tourPlanId)
+        # query_count_offers = stmt.select() \
+        #     .with_only_columns(func.sum(offers.c.touristsAmount), func.sum(offers.c.touristsAmount)) \
+        #     .filter(offers.c.tourPlanId == booking.publicTourId)
+        # result = await session.execute(query_count_offers)
+        # result = dict(result.mappings().first())
+        # print(result)
+        # if ((result - booking.touristsAmount) == 0):
+        #     print("Asdasd")
+        #     query_max_num = update(tours_plan) \
+        #         .where(tours_plan.c.id == booking.publicTourId) \
+        #         .values(isFull=True)
+        #     await session.execute(query_max_num)
         tourists_json = json.dumps([{'name': t.name, 'birthDate': t.birthDate.isoformat()} for t in booking.tourists], ensure_ascii=False)
         tourists_json.replace("\\", "")
         query = insert(offers).values(
@@ -65,13 +78,14 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
             .join(tour_schema, tours_plan.c.schemaId == tour_schema.c.tourId).join(User, User.id == tour_schema.c.ownerGidId)
 
         query = stmt.select().with_only_columns(tours_plan.c.state.label('statusBooking'), tours_plan.c.id.label('publicTourId'),
-                                                tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'),
+                                                tour_schema.c.tourName, offers.c.tourAmount,
                                                 tours_plan.c.meetingPoint,
                                                 tours_plan.c.meetingDatetime.label('meetingTime'),
                                                 tours_plan.c.dateFrom,
                                                 tours_plan.c.dateTo, tours_plan.c.state, User.email, User.phone,
                                                 User.name, offers.c.id, tour_schema.c.mapPoints,
-                                                tour_schema.c.additionalServices, tour_schema.c.freeServices, tour_schema.c.tourId) \
+                                                tour_schema.c.additionalServices, tour_schema.c.freeServices,
+                                                tour_schema.c.tourId, offers.c.touristsAmount) \
             .filter((offers.c.touristId == user.id) & (offers.c.cancellation == False))
         if isFinished:
             query = query.filter(tours_plan.c.dateTo <= datetime.datetime.utcnow())
@@ -82,6 +96,7 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
         result = result.mappings().all()
 
         list_of_dicts = [bookedTour(
+            touristsAmount=row['touristsAmount'],
             statusBooking=row["statusBooking"],
             dateFrom=row['dateFrom'].isoformat(),
             dateTo=row['dateTo'].isoformat(),
@@ -117,12 +132,16 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
     }
 
 @router.post("/{id}")
-async def cancelBooking(id: uuid.UUID, user = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
+async def cancelBooking(id: uuid.UUID, publicTourId: uuid.UUID, user = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
     try:
         query = update(offers)\
             .where((offers.c.touristId == user.id) & (offers.c.id == id)).\
             values(cancellation=True)
+        await session.execute(query)
 
+        query = update(tours_plan) \
+            .where(tours_plan.c.id == publicTourId)\
+            .values(isFull=False)
         await session.execute(query)
         await session.commit()
     except:

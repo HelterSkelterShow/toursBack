@@ -273,7 +273,8 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
         for tour in list_of_dicts:
             tour["cancelDeadline"] = tour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
 
-            query = offers.select().with_only_columns(offers.c.id, offers.c.cancellation,
+            stmt = offers.join(User, User.id == offers.c.touristId)
+            query = stmt.select().with_only_columns(User.name, User.email, User.phone ,offers.c.id.label('bookingId'), offers.c.cancellation,
                                                       offers.c.bookingTime, offers.c.tourAmount,
                                                       offers.c.tourists, offers.c.comment) \
                 .filter(offers.c.tourPlanId == tour["publicTourId"])

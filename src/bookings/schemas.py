@@ -38,6 +38,7 @@ class bookedTour(BaseModel):
     meetingTime: datetime.datetime
     cancelDeadline: datetime.datetime
     tour: Tour
+    touristsAmount: int
 
 class bookings(BaseModel):
     data: List[bookedTour]
