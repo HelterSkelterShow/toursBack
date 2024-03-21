@@ -277,7 +277,7 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
             query = stmt.select().with_only_columns(User.name, User.email, User.phone ,offers.c.id.label('bookingId'), offers.c.cancellation,
                                                       offers.c.bookingTime, offers.c.tourAmount,
                                                       offers.c.tourists, offers.c.comment) \
-                .filter(offers.c.tourPlanId == tour["publicTourId"])
+                .filter((offers.c.tourPlanId == tour["publicTourId"]) & (offers.c.cancelled == False))
             bookings_res = await session.execute(query)
             bookings_res = bookings_res.mappings().all()
             list_of_bookings = [dict(row) for row in bookings_res]
