@@ -22,20 +22,21 @@ router = APIRouter(
 
 @router.post("/search", response_model=RsList)
 async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: int = TOURS_PER_PAGE,  session: AsyncSession = Depends(get_async_session)) -> dict:
-    # try:
-
-        # subquery = offers.select().with_only_columns(func.sum(tours_plan.tourists_amount)).filter(offers.tour_plan_id == tours_plan.id).correlate(tours_plan).as_scalar()
-
+    # try
+        subquery = offers.select().\
+            with_only_columns(func.sum(offers.c.touristsAmount)).\
+            filter(offers.c.tourPlanId == tours_plan.c.id).correlate(tours_plan)
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
-        query = stmt.select().with_only_columns(tours_plan.c.id.label('tourId'), tour_schema.c.tourName, tours_plan.c.price,
+        query = stmt.select().with_only_columns(tours_plan.c.id.label('tourId'),
+                                                tour_schema.c.tourName, tours_plan.c.price,
                                                 tour_schema.c.region, tour_schema.c.category,
                                                 tour_schema.c.photos, tours_plan.c.dateFrom,
                                                 tours_plan.c.dateTo, tours_plan.c.state)
         query = query.filter(tours_plan.c.dateFrom >= datetime.now())
         query = query.filter(tours_plan.c.state == "isActive")
-        # query = query.filter(tours_plan.max_person_number < subquery)
+        # query = query.filter(tours_plan.c.maxPersonNumber > subquery)
 
-  #      query = query.filter(tour_schema.c.isFull == False)
+        # query = query.filter(tour_schema.c.isFull == False)
 
         if searchRq.tourdate:
             if searchRq.tourdate.dateFrom:
@@ -98,7 +99,7 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
 
 @router.get("/{id}", response_model=TourResponse)
 async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session)) -> dict:
-    try:
+    # try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
         query = stmt.select().with_only_columns(tours_plan.c.id.label('publicTourId'), User.name.label('creatorName'), tour_schema.c.tourName, tours_plan.c.price,
                                                 tour_schema.c.region, tour_schema.c.category,
@@ -117,19 +118,20 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
             .filter(offers.c.tourPlanId == res_dict["publicTourId"])
         result = await session.execute(query)
         result = result.scalar()
-        res_dict["vacancies"] = res_dict["maxPersonNumber"] - result
+        if result != None:
+            res_dict["vacancies"] = res_dict["maxPersonNumber"] - result
 
 
         return {"status": "success",
                 "data": res_dict,
                 "details": None
                 }
-    except:
-        raise HTTPException(500, detail={
-            "status":"ERROR",
-            "data":None,
-            "details":"NOT FOUND"
-        })
+    # except:
+    #     raise HTTPException(500, detail={
+    #         "status":"ERROR",
+    #         "data":None,
+    #         "details":"NOT FOUND"
+    #     })
 
 @router.post("/claim/create")
 async def createClaim(claim: claimRq, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:

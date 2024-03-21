@@ -72,7 +72,7 @@ class TourData(BaseModel):
     additionalServices: List[str]|None = None
     recommendedAgeFrom: int
     recommendedAgeTo: int
-    vacancies: int
+    vacancies: int|None = None
 
 class TourResponse(BaseModel):
     status: str
