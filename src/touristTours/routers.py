@@ -34,8 +34,7 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
                                                 tours_plan.c.dateTo, tours_plan.c.state)
         query = query.filter(tours_plan.c.dateFrom >= datetime.now())
         query = query.filter(tours_plan.c.state == "isActive")
-        # query = query.filter(tours_plan.c.maxPersonNumber > subquery)
-
+        query = query.filter(tours_plan.c.maxPersonNumber < subquery)
         # query = query.filter(tour_schema.c.isFull == False)
 
         if searchRq.tourdate:
@@ -118,7 +117,9 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
             .filter(offers.c.tourPlanId == res_dict["publicTourId"])
         result = await session.execute(query)
         result = result.scalar()
-        if result != None:
+        if result == None:
+            res_dict["vacancies"] = res_dict["maxPersonNumber"]
+        else:
             res_dict["vacancies"] = res_dict["maxPersonNumber"] - result
 
 
