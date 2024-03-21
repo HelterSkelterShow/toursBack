@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.base_config import current_user
 import boto3
-from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, TIME_TO_UPDATE, TIME_TO_CANCEL
+from src.config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, TIME_TO_UPDATE, TIME_TO_CANCEL, COMMISSION
 
 from src.creatorTours.models import tour_schema, tours_plan, offers
 from src.creatorTours.utils import photosOptimization
@@ -263,14 +263,22 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
 
         query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'),
                                                 tours_plan.c.meetingPoint, tours_plan.c.meetingDatetime.label('meetingTime'),
-                                                tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo, tours_plan.c.state)\
+                                                tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo,
+                                                tours_plan.c.state.label('state'))\
             .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1))
-                    & (tours_plan.c.state != "cancelled") & (tour_schema.c.ownerGidId == user.id))
+                    & (tours_plan.c.state == "isActive" ) & (tours_plan.c.state == "finished") & (tour_schema.c.ownerGidId == user.id))
         result = await session.execute(query)
         res_dict = result.mappings().all()
         list_of_dicts = [dict(row) for row in res_dict]
 
+
+
         for tour in list_of_dicts:
+            query_profit = offers.select().with_only_columns(func.sum(offers.c.tourAmount)).filter(
+                offers.c.tourPlanId == list_of_dicts["tourAmount"])
+            amount_res = await session.execute(query_profit)
+            amount_res = int(amount_res.scalar())
+            tour["profit"] = amount_res - amount_res/COMMISSION
             tour["cancelDeadline"] = tour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
 
             stmt = offers.join(User, User.id == offers.c.touristId)
