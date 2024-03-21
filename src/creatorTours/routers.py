@@ -266,7 +266,7 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
                                                 tours_plan.c.maxPersonNumber, tours_plan.c.dateFrom, tours_plan.c.dateTo,
                                                 tours_plan.c.state.label('state'))\
             .filter((tours_plan.c.dateTo > datetime.datetime(year - 1, 1, 1)) & (tours_plan.c.dateFrom < datetime.datetime(year + 2, 1, 1))
-                    & (tours_plan.c.state == "isActive" ) & (tours_plan.c.state == "finished") & (tour_schema.c.ownerGidId == user.id))
+                    & ((tours_plan.c.state == "isActive") | (tours_plan.c.state == "finished")) & (tour_schema.c.ownerGidId == user.id))
         result = await session.execute(query)
         res_dict = result.mappings().all()
         list_of_dicts = [dict(row) for row in res_dict]
@@ -275,11 +275,16 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
 
         for tour in list_of_dicts:
             query_profit = offers.select().with_only_columns(func.sum(offers.c.tourAmount)).filter(
-                offers.c.tourPlanId == list_of_dicts["tourAmount"])
+                offers.c.tourPlanId == tour["publicTourId"])
             amount_res = await session.execute(query_profit)
-            amount_res = int(amount_res.scalar())
-            tour["profit"] = amount_res - amount_res/COMMISSION
+            amount_res = amount_res.scalar()
+
             tour["cancelDeadline"] = tour["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)
+
+            if amount_res != None:
+                tour["profit"] = amount_res - amount_res // COMMISSION
+            else:
+                tour["profit"] = 0
 
             stmt = offers.join(User, User.id == offers.c.touristId)
             query = stmt.select().with_only_columns(User.name, User.email, User.phone ,offers.c.id.label('bookingId'), offers.c.cancellation,

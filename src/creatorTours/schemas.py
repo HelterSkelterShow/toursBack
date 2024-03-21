@@ -78,6 +78,7 @@ class TourListData(BaseModel):
     cancelDeadline: datetime.datetime
     bookingInfo: List[BookingInfo]
     state: str
+    profit: int
 
 class TourListResponse(BaseModel):
     status: str
