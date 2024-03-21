@@ -27,19 +27,6 @@ async def createBooking(booking: BookingRq, user: User = Depends(current_user), 
             "details": "Booking is available only for tourists"
         })
     try:
-        # stmt = offers.join(tours_plan, tours_plan.c.id == offers.c.tourPlanId)
-        # query_count_offers = stmt.select() \
-        #     .with_only_columns(func.sum(offers.c.touristsAmount), func.sum(offers.c.touristsAmount)) \
-        #     .filter(offers.c.tourPlanId == booking.publicTourId)
-        # result = await session.execute(query_count_offers)
-        # result = dict(result.mappings().first())
-        # print(result)
-        # if ((result - booking.touristsAmount) == 0):
-        #     print("Asdasd")
-        #     query_max_num = update(tours_plan) \
-        #         .where(tours_plan.c.id == booking.publicTourId) \
-        #         .values(isFull=True)
-        #     await session.execute(query_max_num)
         tourists_json = json.dumps([{'name': t.name, 'birthDate': t.birthDate.isoformat()} for t in booking.tourists], ensure_ascii=False)
         tourists_json.replace("\\", "")
         query = insert(offers).values(
@@ -137,11 +124,6 @@ async def cancelBooking(id: uuid.UUID, publicTourId: uuid.UUID, user = Depends(c
         query = update(offers)\
             .where((offers.c.touristId == user.id) & (offers.c.id == id)).\
             values(cancellation=True)
-        await session.execute(query)
-
-        query = update(tours_plan) \
-            .where(tours_plan.c.id == publicTourId)\
-            .values(isFull=False)
         await session.execute(query)
         await session.commit()
     except:
