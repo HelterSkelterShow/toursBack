@@ -72,8 +72,9 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
                                                 tours_plan.c.dateTo, tours_plan.c.state, User.email, User.phone,
                                                 User.name, offers.c.id, tour_schema.c.mapPoints,
                                                 tour_schema.c.additionalServices, tour_schema.c.freeServices,
-                                                tour_schema.c.tourId, offers.c.touristsAmount) \
-            .filter((offers.c.touristId == user.id) & (offers.c.cancellation == False))
+                                                tour_schema.c.tourId, offers.c.touristsAmount,
+                                                offers.c.cancellation.label('touristCancel')) \
+            .filter(offers.c.touristId == user.id)
         if isFinished:
             query = query.filter(tours_plan.c.dateTo <= datetime.datetime.utcnow())
         else:
@@ -84,7 +85,7 @@ async def getMyBookings(isFinished: bool, user: User = Depends(current_user), se
 
         list_of_dicts = [bookedTour(
             touristsAmount=row['touristsAmount'],
-            statusBooking=row["statusBooking"],
+            statusBooking=row["statusBooking"] if (row["touristCancel"] == False) else "touristCancelled",
             dateFrom=row['dateFrom'].isoformat(),
             dateTo=row['dateTo'].isoformat(),
             publicTourId=row['publicTourId'],
@@ -132,7 +133,6 @@ async def cancelBooking(id: uuid.UUID, user: User = Depends(current_user), sessi
             "data":None,
             "details":"No tour publication to cancel"
         })
-
     return {
         "status": "success",
         "data": id,

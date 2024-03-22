@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.post("/search", response_model=RsList)
 async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: int = TOURS_PER_PAGE,  session: AsyncSession = Depends(get_async_session)) -> dict:
-        #try:
+    try:
         subquery = offers.select()\
             .with_only_columns(func.sum(offers.c.touristsAmount))\
             .filter((offers.c.tourPlanId == tours_plan.c.id) & (offers.c.cancellation == False)).correlate(tours_plan)
@@ -93,16 +93,16 @@ async def toursSearch(searchRq: TourSearchRq, page: int = Query(gt=0), perPage: 
                 "hasMore": hasMore
             }
         }
-    # except:
-    #     raise HTTPException(500, detail={
-    #         "status": "ERROR",
-    #         "data": None,
-    #         "details": "Exception while trying to get tours from database"
-    #     })
+    except:
+        raise HTTPException(500, detail={
+            "status": "ERROR",
+            "data": None,
+            "details": "Exception while trying to get tours from database"
+        })
 
 @router.get("/{id}", response_model=TourResponse)
 async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session)) -> dict:
-    # try:
+    try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
         query = stmt.select().with_only_columns(tours_plan.c.id.label('publicTourId'), User.name.label('creatorName'), tour_schema.c.tourName, tours_plan.c.price,
                                                 tour_schema.c.region, tour_schema.c.category,
@@ -131,12 +131,12 @@ async def tourDetails(id: str, session: AsyncSession = Depends(get_async_session
                 "data": res_dict,
                 "details": None
                 }
-    # except:
-    #     raise HTTPException(500, detail={
-    #         "status":"ERROR",
-    #         "data":None,
-    #         "details":"NOT FOUND"
-    #     })
+    except:
+        raise HTTPException(500, detail={
+            "status":"ERROR",
+            "data":None,
+            "details":"NOT FOUND"
+        })
 
 @router.post("/claim/create")
 async def createClaim(claim: claimRq, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:

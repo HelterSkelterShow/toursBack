@@ -259,7 +259,7 @@ async def publicDelete(id: str, user: User = Depends(current_user), session: Asy
 
 @router.get("/public", response_model=TourListResponse)
 async def publicGetList(year: int, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
-    # try:
+    try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId).join(User, tour_schema.c.ownerGidId == User.id)
 
         query = stmt.select().with_only_columns(tour_schema.c.tourId, tours_plan.c.id.label('publicTourId'), tour_schema.c.tourName, tours_plan.c.price.label('tourAmount'),
@@ -303,12 +303,12 @@ async def publicGetList(year: int, user: User = Depends(current_user), session: 
                 "data": list_of_dicts,
                 "details": None
                 }
-    # except:
-    #     raise HTTPException(500, detail={
-    #         "status": "ERROR",
-    #         "data": None,
-    #         "details": "NOT FOUND"
-    #     })
+    except:
+        raise HTTPException(500, detail={
+            "status": "ERROR",
+            "data": None,
+            "details": "NOT FOUND"
+        })
 
 @router.post("/statistics")
 async def getStatistics(date: Dates, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:
@@ -316,11 +316,14 @@ async def getStatistics(date: Dates, user: User = Depends(current_user), session
     query = stmt.select().with_only_columns(tour_schema.c.tourName,
                                             func.sum(offers.c.touristsAmount).label('touristsAmount'),
                                             func.sum(offers.c.tourAmount).label('tourAmount')) \
-        .filter((tour_schema.c.ownerGidId == user.id) & (tours_plan.c.dateFrom >= date.dateFrom) & (tours_plan.c.dateFrom <= date.dateTo)) \
+        .filter((tour_schema.c.ownerGidId == user.id) & (tours_plan.c.dateFrom >= date.dateFrom) & (tours_plan.c.dateFrom <= date.dateTo) & \
+                ((tours_plan.c.state == "isActive") | (tours_plan.c.state == "finished")) & (offers.c.cancellation == False))\
         .group_by(tour_schema.c.tourName)
     result = await session.execute(query)
     result = result.mappings().all()
     list_of_dicts = [dict(row) for row in result]
+    for tour in list_of_dicts:
+        tour["tourAmount"] = math.ceil(tour["tourAmount"]/COMMISSION)
     return {
         "status":"success",
         "data":list_of_dicts,
