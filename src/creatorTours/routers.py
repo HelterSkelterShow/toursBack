@@ -42,7 +42,8 @@ async def createTourTemplate(templ: TourTempl,
             freeServices = templ.freeServices,
             additionalServices = templ.additionalServices,
             recommendedAgeFrom = templ.recommendedAgeFrom,
-            recommendedAgeTo = templ.recommendedAgeTo
+            recommendedAgeTo = templ.recommendedAgeTo,
+            isArchived = False
         )
         await session.execute(query)
         await session.commit()
@@ -133,15 +134,18 @@ async def deleteTourTemplate(id: str,
                 "data": list_of_dicts,
                 "details": "There are several publications, connected with the template"
             })
-        query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
-        result = await session.execute(query)
-        client = boto3.client(service_name="s3",
-                              endpoint_url='https://storage.yandexcloud.net',
-                              aws_access_key_id=AWS_ACCESS_KEY_ID,
-                              aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-        for image in result.all()[0][0]:
-            client.delete_object(Bucket='mywaytours', Key=image.removeprefix('https://storage.yandexcloud.net/mywaytours/'))
-        stmt = delete(tour_schema).where(tour_schema.c.tourId == id)
+        # query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
+        # result = await session.execute(query)
+        # client = boto3.client(service_name="s3",
+        #                       endpoint_url='https://storage.yandexcloud.net',
+        #                       aws_access_key_id=AWS_ACCESS_KEY_ID,
+        #                       aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        # for image in result.all()[0][0]:
+        #     client.delete_object(Bucket='mywaytours', Key=image.removeprefix('https://storage.yandexcloud.net/mywaytours/'))
+        # stmt = delete(tour_schema).where(tour_schema.c.tourId == id)
+        stmt = update(tour_schema)\
+            .where(tour_schema.c.tourId == id)\
+            .values(isArchived = True)
         await session.execute(stmt)
         await session.commit()
         return {"status":"success",
@@ -176,7 +180,7 @@ async def getTourTemplate(id: str,
         })
 
 @router.get("/templates", response_model=TemplateSearchRs)
-async def getTourTemplateList(user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
+async def getTourTemplateList(isArchived: bool, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
     try:
         query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.category,
                        tour_schema.c.photos, tour_schema.c.region, tour_schema.c.complexity)\
@@ -187,7 +191,8 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
 
         for templates in list_of_tours:
             stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == tour_schema.c.tourId)
-            stmt_query = stmt.select().where((tour_schema.c.tourId == templates["tourId"]) & (tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom > datetime.datetime.utcnow()))
+            stmt_query = stmt.select()\
+                .where((tour_schema.c.tourId == templates["tourId"]) & (tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom > datetime.datetime.utcnow()) & (tour_schema.c.isArchived == isArchived))
             total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
             total = total_count.scalar()
             templates["publicCount"] = total
@@ -201,6 +206,18 @@ async def getTourTemplateList(user: User = Depends(current_user), session: Async
             "data":None,
             "details":"NOT FOUND"
         })
+
+@router.get("/templates/activate")
+async def activateTemplate(id: uuid.UUID, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
+    stmt = update(tour_schema) \
+        .where(tour_schema.c.tourId == id) \
+        .values(isArchived=False)
+    await session.execute(stmt)
+    await session.commit()
+    return {"status": "success",
+            "data": None,
+            "details": None
+            }
 
 @router.post("/public/create")
 async def publicTourCreate(public: publicTour, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)) -> dict:

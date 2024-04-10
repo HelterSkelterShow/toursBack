@@ -70,7 +70,7 @@ async def blockUser(id: int, user: User = Depends(current_user), session: AsyncS
         query_tours_plan_ref = query_tours_plan_ref.filter(tours_plan.c.state in ["isActive", "consideration"])
         await session.execute(query_tours_plan_ref)
         query_bookings_cancel = update(offers).where(offers.c.touristId == user.id).values(cancellation=True)
-        query_bookings_cancel = query_bookings_cancel.where((tours_plan.c.id == offers.c.tourPlanId) & (tours_plan.c.dateFrom - datetime.timedelta(days=TOURIST_TIME_TO_CANCEL) > datetime.datetime.utcnow()))
+        query_bookings_cancel = query_bookings_cancel.where((tours_plan.c.id == offers.c.tourPlanId) & (tours_plan.c.dateFrom > datetime.datetime.utcnow()))
         await session.execute(query_bookings_cancel)
         await session.commit()
     except:

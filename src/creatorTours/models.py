@@ -21,7 +21,8 @@ tour_schema = Table(
     Column("freeServices", JSON, nullable=True),
     Column("additionalServices", JSON, nullable=True),
     Column("recommendedAgeFrom", Integer, nullable=False),
-    Column("recommendedAgeTo", Integer, nullable=False)
+    Column("recommendedAgeTo", Integer, nullable=False),
+    Column("isArchived", Boolean, nullable=True)
 )
 
 tours_plan = Table(
