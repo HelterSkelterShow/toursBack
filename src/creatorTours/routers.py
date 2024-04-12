@@ -115,7 +115,7 @@ async def updateTourTemplate(id: str,
 async def deleteTourTemplate(id: str,
                                  user: User = Depends(current_user),
                                  session: AsyncSession = Depends(get_async_session)) -> dict:
-    try:
+    # try:
         stmt = tour_schema.join(tours_plan, tour_schema.c.tourId == tours_plan.c.schemaId)
         stmt_query = stmt.select().with_only_columns(tours_plan.c.id.label('publicTourId'), tours_plan.c.dateFrom, tours_plan.c.dateTo)
         total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
@@ -152,12 +152,12 @@ async def deleteTourTemplate(id: str,
                 "data":None,
                 "details":None
                 }
-    except:
-        raise HTTPException(status_code=500, detail={
-             "status": "error",
-             "data": None,
-             "details": None
-         })
+    # except:
+    #     raise HTTPException(status_code=500, detail={
+    #          "status": "error",
+    #          "data": None,
+    #          "details": None
+    #      })
 
 @router.get("/templates/{id}")
 async def getTourTemplate(id: str,
