@@ -120,20 +120,20 @@ async def deleteTourTemplate(id: str,
         stmt_query = stmt.select().with_only_columns(tours_plan.c.id.label('publicTourId'), tours_plan.c.dateFrom, tours_plan.c.dateTo)
         total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
         total = total_count.scalar()
-        if total > 0:
-            result = await session.execute(stmt_query)
-            res_list = result.mappings().all()
-            list_of_dicts = [dict(row) for row in res_list]
-            for public in list_of_dicts:
-                public["publicTourId"] = str(public["publicTourId"])
-                public["cancelDeadline"] = (public["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)).strftime('%Y-%m-%d')
-                public["dateFrom"] = (public["dateFrom"]).strftime('%Y-%m-%d')
-                public["dateTo"] = (public["dateTo"]).strftime('%Y-%m-%d')
-            raise HTTPException(status_code=300, detail={
-                "status": "redirect",
-                "data": list_of_dicts,
-                "details": "There are several publications, connected with the template"
-            })
+        # if total > 0:
+        #     result = await session.execute(stmt_query)
+        #     res_list = result.mappings().all()
+        #     list_of_dicts = [dict(row) for row in res_list]
+        #     for public in list_of_dicts:
+        #         public["publicTourId"] = str(public["publicTourId"])
+        #         public["cancelDeadline"] = (public["dateFrom"] - datetime.timedelta(days=TIME_TO_CANCEL)).strftime('%Y-%m-%d')
+        #         public["dateFrom"] = (public["dateFrom"]).strftime('%Y-%m-%d')
+        #         public["dateTo"] = (public["dateTo"]).strftime('%Y-%m-%d')
+        #     raise HTTPException(status_code=300, detail={
+        #         "status": "redirect",
+        #         "data": list_of_dicts,
+        #         "details": "There are several publications, connected with the template"
+        #     })
         # query = select(tour_schema.c.photos).where(tour_schema.c.tourId == id)
         # result = await session.execute(query)
         # client = boto3.client(service_name="s3",
