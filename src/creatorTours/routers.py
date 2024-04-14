@@ -184,7 +184,7 @@ async def getTourTemplateList(isArchived: bool, user: User = Depends(current_use
     try:
         query = select(tour_schema.c.tourId, tour_schema.c.tourName, tour_schema.c.category,
                        tour_schema.c.photos, tour_schema.c.region, tour_schema.c.complexity)\
-            .where(tour_schema.c.ownerGidId == user.id)
+            .where((tour_schema.c.ownerGidId == user.id) & (tour_schema.c.isArchived == isArchived))
         result = await session.execute(query)
         res_list = result.mappings().all()
         list_of_tours = photosOptimization(res_list)
@@ -192,7 +192,7 @@ async def getTourTemplateList(isArchived: bool, user: User = Depends(current_use
         for templates in list_of_tours:
             stmt = tour_schema.join(tours_plan, tours_plan.c.schemaId == tour_schema.c.tourId)
             stmt_query = stmt.select()\
-                .where((tour_schema.c.tourId == templates["tourId"]) & (tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom > datetime.datetime.utcnow()) & (tour_schema.c.isArchived == isArchived))
+                .where((tour_schema.c.tourId == templates["tourId"]) & (tours_plan.c.state == "isActive") & (tours_plan.c.dateFrom > datetime.datetime.utcnow()))
             total_count = await session.execute(stmt_query.with_only_columns(func.count().label('total')))
             total = total_count.scalar()
             templates["publicCount"] = total
