@@ -207,7 +207,7 @@ async def getTourTemplateList(isArchived: bool, user: User = Depends(current_use
             "details":"NOT FOUND"
         })
 
-@router.get("/templates/activate")
+@router.post("/templates/activate")
 async def activateTemplate(id: uuid.UUID, user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
     stmt = update(tour_schema) \
         .where(tour_schema.c.tourId == id) \
